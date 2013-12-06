@@ -28,6 +28,11 @@ public:
 	void run(const pcl::PCLPointCloud2ConstPtr &cloud_blob
 			, PCLXYZRGBPoint::Ptr cloud_filtered
 			, PCLXYZRGBPoint::Ptr cloud_r);
+
+private:
+	void voxel_filter(const pcl::PCLPointCloud2ConstPtr &cloud_blob
+			, float leaf_size
+			, PCLXYZRGBPoint::Ptr cloud_filtered);
 };
 
 } /* namespace Modelization */
