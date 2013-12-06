@@ -16,11 +16,9 @@ planeDetection::planeDetection() {
 planeDetection::~planeDetection() {
 }
 
-void planeDetection::run(const pcl::PCLPointCloud2ConstPtr &cloud_blob, PCLXYZRGBPoint::Ptr cloud_filtered, PCLXYZRGBPoint::Ptr cloud_r){
+void planeDetection::run(PCLXYZRGBPoint::Ptr &cloud_in, PCLXYZRGBPoint::Ptr cloud_filtered, PCLXYZRGBPoint::Ptr cloud_r){
 
 	int RandR,RandG,RandB,it(0);
-
-	pcl::PCLPointCloud2Ptr cloud_filtered_blob (new pcl::PCLPointCloud2);
 
 
 	PCLXYZRGBPoint::Ptr cloud (new PCLXYZRGBPoint);
@@ -29,7 +27,7 @@ void planeDetection::run(const pcl::PCLPointCloud2ConstPtr &cloud_blob, PCLXYZRG
 	srand((unsigned)time(0));
 
 	// Voxel Filetring
-	voxel_filter(cloud_blob,0.01f,cloud_filtered);
+	voxel_filter(cloud_in,0.01f,cloud_filtered);
 
 
 	// Planar approximation
@@ -42,11 +40,11 @@ void planeDetection::run(const pcl::PCLPointCloud2ConstPtr &cloud_blob, PCLXYZRG
 	seg.setModelType (pcl::SACMODEL_PLANE);
 	seg.setMethodType (pcl::SAC_RANSAC);
 	seg.setDistanceThreshold (0.1);
-
+	PCLXYZRGBPoint::Ptr cloud_f (new PCLXYZRGBPoint);
 	pcl::ExtractIndices<pcl::PointXYZRGBA> extract;
 	while(true)
 	{
-		PCLXYZRGBPoint::Ptr cloud_f (new PCLXYZRGBPoint);
+
 		// Segment the largest planar component from the remaining cloud
 		seg.setInputCloud (cloud_p);
 		seg.segment (*inliers, *coefficients);
@@ -96,19 +94,19 @@ void planeDetection::run(const pcl::PCLPointCloud2ConstPtr &cloud_blob, PCLXYZRG
 		std::stringstream str2;
 		str2<<"results/residue_"<<it++<<".pcd";
 		pcl::io::savePCDFileASCII(str2.str(),*cloud_p);
+		cloud_f.reset(new PCLXYZRGBPoint);
 	}
 	*cloud_r+=*cloud_p;
 }
 
-void planeDetection::voxel_filter(const pcl::PCLPointCloud2ConstPtr &cloud_blob,float leaf_size, PCLXYZRGBPoint::Ptr cloud_filtered){
+void planeDetection::voxel_filter(PCLXYZRGBPoint::Ptr &cloud_in,float leaf_size, PCLXYZRGBPoint::Ptr cloud_filtered){
 
-	pcl::PCLPointCloud2Ptr cloud_filtered_blob (new pcl::PCLPointCloud2);
-	pcl::VoxelGrid<pcl::PCLPointCloud2> sor;
+	pcl::VoxelGrid<pcl::PointXYZRGBA> sor;
 
-	sor.setInputCloud (cloud_blob);
+	sor.setInputCloud (cloud_in);
 	sor.setLeafSize (leaf_size, leaf_size, leaf_size);
-	sor.filter (*cloud_filtered_blob);
-	pcl::fromPCLPointCloud2 (*cloud_filtered_blob, *cloud_filtered);
+	sor.filter (*cloud_filtered);
+//	pcl::fromPCLPointCloud2 (*cloud_filtered_blob, *cloud_filtered);
 }
 
 } /* namespace Modelization */

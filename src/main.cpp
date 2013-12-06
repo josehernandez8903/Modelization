@@ -13,23 +13,23 @@ main (int argc, char** argv)
 		return 0;
 	}
 
-	pcl::PCLPointCloud2Ptr cloud_blob(new pcl::PCLPointCloud2);
+	PCLXYZRGBPoint::Ptr cloud_in(new PCLXYZRGBPoint);
 	PCLXYZRGBPoint::Ptr cloud_filtered (new PCLXYZRGBPoint);
 	PCLXYZRGBPoint::Ptr cloud_result (new PCLXYZRGBPoint);
 	Modelization::planeDetection Modelizer;
 
 
-	if(pcl::io::loadPCDFile(argv[1],*cloud_blob)!=0)
+	if(pcl::io::loadPCDFile(argv[1],*cloud_in)!=0)
 	{
 		std::cerr<<"File not found or corrupt";
 		return 0;
 	}
 
-	Modelizer.run(cloud_blob,cloud_filtered,cloud_result);
+	Modelizer.run(cloud_in,cloud_filtered,cloud_result);
 	pcl::visualization::CloudViewer viewer("Cloud Viewer");
 
 	//blocks until the cloud is actually rendered
-	viewer.showCloud(cloud_result);
+	viewer.showCloud(cloud_result,"resultant Cloud");
 
 	while (!viewer.wasStopped ())
 	{

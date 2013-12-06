@@ -24,13 +24,13 @@ public:
 	planeDetection();
 	virtual ~planeDetection();
 
-//	void VoxelFiltering(const PCLPointCloud2ConstPtr &cloud, pcl::PointCloud<pcl::PointXYZRGBA>& cloud);
-	void run(const pcl::PCLPointCloud2ConstPtr &cloud_blob
+
+	void run(PCLXYZRGBPoint::Ptr &cloud_blob
 			, PCLXYZRGBPoint::Ptr cloud_filtered
 			, PCLXYZRGBPoint::Ptr cloud_r);
 
-private:
-	void voxel_filter(const pcl::PCLPointCloud2ConstPtr &cloud_blob
+
+	static void voxel_filter(PCLXYZRGBPoint::Ptr &cloud_blob
 			, float leaf_size
 			, PCLXYZRGBPoint::Ptr cloud_filtered);
 };
