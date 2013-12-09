@@ -25,14 +25,14 @@ public:
 	virtual ~planeDetection();
 
 
-	void run(PCLXYZRGBPoint::Ptr &cloud_blob
-			, PCLXYZRGBPoint::Ptr cloud_filtered
-			, PCLXYZRGBPoint::Ptr cloud_r);
+	void run(PCLXYZRGBPointPtr &cloud_blob
+			, PCLXYZRGBPointPtr cloud_filtered
+			, PCLXYZRGBPointPtr cloud_r);
 
 
-	static void voxel_filter(PCLXYZRGBPoint::Ptr &cloud_blob
+	static void voxel_filter(const PCLXYZRGBPointPtr &cloud_blob
 			, float leaf_size
-			, PCLXYZRGBPoint::Ptr cloud_filtered);
+			, PCLXYZRGBPointPtr cloud_filtered);
 };
 
 } /* namespace Modelization */

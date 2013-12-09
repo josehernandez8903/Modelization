@@ -16,13 +16,13 @@ planeDetection::planeDetection() {
 planeDetection::~planeDetection() {
 }
 
-void planeDetection::run(PCLXYZRGBPoint::Ptr &cloud_in, PCLXYZRGBPoint::Ptr cloud_filtered, PCLXYZRGBPoint::Ptr cloud_r){
+void planeDetection::run(PCLXYZRGBPointPtr &cloud_in, PCLXYZRGBPointPtr cloud_filtered, PCLXYZRGBPointPtr cloud_r){
 
 	int RandR,RandG,RandB,it(0);
 
 
-	PCLXYZRGBPoint::Ptr cloud (new PCLXYZRGBPoint);
-	PCLXYZRGBPoint::Ptr cloud_p = cloud_filtered;
+	PCLXYZRGBPointPtr cloud (new PCLXYZRGBPoint);
+	PCLXYZRGBPointPtr cloud_p = cloud_filtered;
 
 	srand((unsigned)time(0));
 
@@ -40,7 +40,7 @@ void planeDetection::run(PCLXYZRGBPoint::Ptr &cloud_in, PCLXYZRGBPoint::Ptr clou
 	seg.setModelType (pcl::SACMODEL_PLANE);
 	seg.setMethodType (pcl::SAC_RANSAC);
 	seg.setDistanceThreshold (0.1);
-	PCLXYZRGBPoint::Ptr cloud_f (new PCLXYZRGBPoint);
+	PCLXYZRGBPointPtr cloud_f (new PCLXYZRGBPoint);
 	pcl::ExtractIndices<pcl::PointXYZRGBA> extract;
 	while(true)
 	{
@@ -99,7 +99,7 @@ void planeDetection::run(PCLXYZRGBPoint::Ptr &cloud_in, PCLXYZRGBPoint::Ptr clou
 	*cloud_r+=*cloud_p;
 }
 
-void planeDetection::voxel_filter(PCLXYZRGBPoint::Ptr &cloud_in,float leaf_size, PCLXYZRGBPoint::Ptr cloud_filtered){
+void planeDetection::voxel_filter(const PCLXYZRGBPointPtr &cloud_in,float leaf_size, PCLXYZRGBPointPtr cloud_filtered){
 
 	pcl::VoxelGrid<pcl::PointXYZRGBA> sor;
 
