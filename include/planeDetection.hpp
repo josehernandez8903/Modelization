@@ -29,10 +29,14 @@ public:
 			, PCLXYZRGBPointPtr cloud_filtered
 			, PCLXYZRGBPointPtr cloud_r);
 
+	static void voxel_filter(const PCLXYZRGBPointPtr &cloud_in
+			, float leaf_size
+			, PCLXYZRGBPointPtr cloud_filtered);
 
 	static void voxel_filter(const PCLXYZRGBPointPtr &cloud_blob
 			, float leaf_size
-			, PCLXYZRGBPointPtr cloud_filtered);
+			, PCLXYZRGBPointPtr cloud_filtered
+			, pcl::PointIndices::Ptr& index);
 };
 
 } /* namespace Modelization */

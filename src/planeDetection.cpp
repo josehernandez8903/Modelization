@@ -20,7 +20,6 @@ void planeDetection::run(PCLXYZRGBPointPtr &cloud_in, PCLXYZRGBPointPtr cloud_fi
 
 	int RandR,RandG,RandB,it(0);
 
-
 	PCLXYZRGBPointPtr cloud (new PCLXYZRGBPoint);
 	PCLXYZRGBPointPtr cloud_p = cloud_filtered;
 
@@ -29,19 +28,18 @@ void planeDetection::run(PCLXYZRGBPointPtr &cloud_in, PCLXYZRGBPointPtr cloud_fi
 	// Voxel Filetring
 	voxel_filter(cloud_in,0.01f,cloud_filtered);
 
-
 	// Planar approximation
 	pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients);
 	pcl::PointIndices::Ptr inliers (new pcl::PointIndices);
 	// Create the segmentation object
-	pcl::SACSegmentation<pcl::PointXYZRGBA> seg;
+	pcl::SACSegmentation<pcl::PointXYZRGB> seg;
 	seg.setOptimizeCoefficients (true);
 	// Mandatory
 	seg.setModelType (pcl::SACMODEL_PLANE);
 	seg.setMethodType (pcl::SAC_RANSAC);
 	seg.setDistanceThreshold (0.1);
 	PCLXYZRGBPointPtr cloud_f (new PCLXYZRGBPoint);
-	pcl::ExtractIndices<pcl::PointXYZRGBA> extract;
+	pcl::ExtractIndices<pcl::PointXYZRGB> extract;
 	while(true)
 	{
 
@@ -100,13 +98,24 @@ void planeDetection::run(PCLXYZRGBPointPtr &cloud_in, PCLXYZRGBPointPtr cloud_fi
 }
 
 void planeDetection::voxel_filter(const PCLXYZRGBPointPtr &cloud_in,float leaf_size, PCLXYZRGBPointPtr cloud_filtered){
+	pcl::VoxelGrid<pcl::PointXYZRGB> sor;
+	sor.setInputCloud (cloud_in);
+	sor.setLeafSize (leaf_size, leaf_size, leaf_size);
+	sor.filter (*cloud_filtered);
+}
 
-	pcl::VoxelGrid<pcl::PointXYZRGBA> sor;
+
+void planeDetection::voxel_filter(const PCLXYZRGBPointPtr &cloud_in
+		, float leaf_size
+		, PCLXYZRGBPointPtr cloud_filtered
+		, pcl::PointIndices::Ptr& index){
+
+	pcl::VoxelGrid<pcl::PointXYZRGB> sor;
 
 	sor.setInputCloud (cloud_in);
 	sor.setLeafSize (leaf_size, leaf_size, leaf_size);
 	sor.filter (*cloud_filtered);
-//	pcl::fromPCLPointCloud2 (*cloud_filtered_blob, *cloud_filtered);
+	sor.getRemovedIndices(*index);
 }
 
 } /* namespace Modelization */

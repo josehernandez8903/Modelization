@@ -16,7 +16,8 @@
 #include <pcl/visualization/pcl_visualizer.h>
 
 //XYZ and RGB Pointcloud
-typedef pcl::PointCloud<pcl::PointXYZRGBA> PCLXYZRGBPoint;
+
+typedef pcl::PointCloud<pcl::PointXYZRGB> PCLXYZRGBPoint;
 typedef PCLXYZRGBPoint::Ptr PCLXYZRGBPointPtr;
 
 //XYZ and normal Pointcloud
