@@ -25,18 +25,20 @@ public:
 	virtual ~planeDetection();
 
 
-	void run(PCLXYZRGBPointPtr &cloud_blob
-			, PCLXYZRGBPointPtr cloud_filtered
-			, PCLXYZRGBPointPtr cloud_r);
+	void run(const PCXYZRGBPtr& cloud_in
+			, PCXYZRGB& cloud_filtered
+			, PCXYZRGB& cloud_r);
 
-	static void voxel_filter(const PCLXYZRGBPointPtr &cloud_in
+	template <typename PointT>
+	static void voxel_filter(const typename pcl::PointCloud<PointT>::ConstPtr& cloud_in
 			, float leaf_size
-			, PCLXYZRGBPointPtr cloud_filtered);
-
-	static void voxel_filter(const PCLXYZRGBPointPtr &cloud_blob
-			, float leaf_size
-			, PCLXYZRGBPointPtr cloud_filtered
-			, pcl::PointIndices::Ptr& index);
+			,typename pcl::PointCloud<PointT>& cloud_filtered)
+	{
+		pcl::VoxelGrid<PointT> sor;
+		sor.setInputCloud (cloud_in);
+		sor.setLeafSize (leaf_size, leaf_size, leaf_size);
+		sor.filter (cloud_filtered);
+	}
 };
 
 } /* namespace Modelization */

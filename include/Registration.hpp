@@ -14,6 +14,10 @@
 #include <pcl/registration/correspondence_rejection_surface_normal.h>
 #include <pcl/registration/transformation_estimation_point_to_plane_lls.h>
 
+#include <pcl/features/normal_3d.h>
+#include <pcl/features/normal_3d_omp.h>
+#include <pcl/features/integral_image_normal.h>
+
 #include <pcl/registration/default_convergence_criteria.h>
 
 #include "planeDetection.hpp"
@@ -21,7 +25,7 @@
 
 
 namespace Modelization {
-
+using pcl::Normal;
 //Correspondences
 typedef std::vector< pcl::Correspondence, Eigen::aligned_allocator<pcl::Correspondence> > Correspondences;
 typedef boost::shared_ptr<Correspondences> CorrespondencesPtr;
@@ -31,32 +35,37 @@ public:
 	Registration(bool _rejection = true, bool _reiprocal = false);
 	virtual ~Registration();
 
-	void run(const PCLXYZRGBPointPtr &_src
-			, const PCLXYZRGBPointPtr &_tgt
-			, PCLXYZRGBPoint &cloud_r);
+	void run(const PCXYZRGBPtr &_src
+			, const PCXYZRGBPtr &_tgt
+			, PCXYZRGB &cloud_r);
 
 private:
-	void rejectBadCorrespondences (const CorrespondencesPtr &all_correspondences,
-			const CloudNormalPtr &src,
-			const CloudNormalPtr &tgt,
-			Correspondences &remaining_correspondences);
+	void rejectBadCorrespondences (const CorrespondencesPtr& all_correspondences,
+			const PCNormalPtr& src,
+			const PCNormalPtr& tgt,
+			Correspondences& remaining_correspondences);
 
-	void findCorrespondences (const CloudNormalPtr &src,
-			const CloudNormalPtr &tgt,
-			Correspondences &all_correspondences);
+	void findCorrespondences (const PCNormalPtr& src,
+			const PCNormalPtr& tgt,
+			Correspondences& all_correspondences);
 
-	void findTransformation (const CloudNormalPtr &src,
-			const CloudNormalPtr &tgt,
-			const CorrespondencesPtr &correspondences,
+	void findTransformation (const PCNormalPtr& src,
+			const PCNormalPtr& tgt,
+			const CorrespondencesPtr& correspondences,
 			Eigen::Matrix4d &transform);
 
-	void view (const CloudNormal::ConstPtr &src,
-			const CloudNormal::ConstPtr &tgt,
-			const CorrespondencesPtr &correspondences);
+	void view (const PCNormal::ConstPtr& src,
+			const PCNormal::ConstPtr& tgt,
+			const CorrespondencesPtr& correspondences);
 
-	void icp (const CloudNormalPtr &src,
-			const CloudNormalPtr &tgt,
-			Eigen::Matrix4d &transform);
+	void estimateNormals(const PCXYZRGBPtr& cloud_in
+			, PCNormal& cloud_out
+			, bool _downsample
+			, float _leaf_size = 0.01f);
+
+	void icp (const PCNormalPtr& src,
+			const PCNormalPtr& tgt,
+			Eigen::Matrix4d& transform);
 
 
 

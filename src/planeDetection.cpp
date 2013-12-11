@@ -16,12 +16,14 @@ planeDetection::planeDetection() {
 planeDetection::~planeDetection() {
 }
 
-void planeDetection::run(PCLXYZRGBPointPtr &cloud_in, PCLXYZRGBPointPtr cloud_filtered, PCLXYZRGBPointPtr cloud_r){
+void planeDetection::run(const PCXYZRGBPtr& cloud_in
+		, PCXYZRGB& cloud_filtered
+		, PCXYZRGB& cloud_r){
 
 	int RandR,RandG,RandB,it(0);
 
-	PCLXYZRGBPointPtr cloud (new PCLXYZRGBPoint);
-	PCLXYZRGBPointPtr cloud_p = cloud_filtered;
+	PCXYZRGBPtr cloud (new PCXYZRGB);
+	PCXYZRGBPtr cloud_p (new PCXYZRGB(cloud_filtered));
 
 	srand((unsigned)time(0));
 
@@ -38,7 +40,7 @@ void planeDetection::run(PCLXYZRGBPointPtr &cloud_in, PCLXYZRGBPointPtr cloud_fi
 	seg.setModelType (pcl::SACMODEL_PLANE);
 	seg.setMethodType (pcl::SAC_RANSAC);
 	seg.setDistanceThreshold (0.1);
-	PCLXYZRGBPointPtr cloud_f (new PCLXYZRGBPoint);
+	PCXYZRGBPtr cloud_f (new PCXYZRGB);
 	pcl::ExtractIndices<pcl::PointXYZRGB> extract;
 	while(true)
 	{
@@ -46,7 +48,7 @@ void planeDetection::run(PCLXYZRGBPointPtr &cloud_in, PCLXYZRGBPointPtr cloud_fi
 		// Segment the largest planar component from the remaining cloud
 		seg.setInputCloud (cloud_p);
 		seg.segment (*inliers, *coefficients);
-		if ((inliers->indices.size () == 0 )||cloud_p->size()<0.5*cloud_filtered->size())
+		if ((inliers->indices.size () == 0 )||cloud_p->size()<0.5*cloud_filtered.size())
 		{
 			std::cout << "Finished Planar Segmentation" << std::endl;
 			break;
@@ -84,7 +86,7 @@ void planeDetection::run(PCLXYZRGBPointPtr &cloud_in, PCLXYZRGBPointPtr cloud_fi
 			//                                               << cloud->points[inliers->indices[i]].y << " "
 			//                                               << cloud->points[inliers->indices[i]].z << std::endl;
 		}
-		*cloud_r+=*cloud_f;
+		cloud_r+=*cloud_f;
 		extract.setNegative(true);
 		extract.filter(*cloud_f);
 
@@ -92,30 +94,16 @@ void planeDetection::run(PCLXYZRGBPointPtr &cloud_in, PCLXYZRGBPointPtr cloud_fi
 		std::stringstream str2;
 		str2<<"results/residue_"<<it++<<".pcd";
 		pcl::io::savePCDFileASCII(str2.str(),*cloud_p);
-		cloud_f.reset(new PCLXYZRGBPoint);
+		cloud_f.reset(new PCXYZRGB);
 	}
-	*cloud_r+=*cloud_p;
+	cloud_r+=*cloud_p;
 }
 
-void planeDetection::voxel_filter(const PCLXYZRGBPointPtr &cloud_in,float leaf_size, PCLXYZRGBPointPtr cloud_filtered){
-	pcl::VoxelGrid<pcl::PointXYZRGB> sor;
-	sor.setInputCloud (cloud_in);
-	sor.setLeafSize (leaf_size, leaf_size, leaf_size);
-	sor.filter (*cloud_filtered);
-}
-
-
-void planeDetection::voxel_filter(const PCLXYZRGBPointPtr &cloud_in
-		, float leaf_size
-		, PCLXYZRGBPointPtr cloud_filtered
-		, pcl::PointIndices::Ptr& index){
-
-	pcl::VoxelGrid<pcl::PointXYZRGB> sor;
-
-	sor.setInputCloud (cloud_in);
-	sor.setLeafSize (leaf_size, leaf_size, leaf_size);
-	sor.filter (*cloud_filtered);
-	sor.getRemovedIndices(*index);
-}
+//void planeDetection::voxel_filter(const PCXYZRGBPtr &cloud_in,float leaf_size, PCXYZRGBPtr cloud_filtered){
+//	pcl::VoxelGrid<pcl::PointXYZRGB> sor;
+//	sor.setInputCloud (cloud_in);
+//	sor.setLeafSize (leaf_size, leaf_size, leaf_size);
+//	sor.filter (*cloud_filtered);
+//}
 
 } /* namespace Modelization */

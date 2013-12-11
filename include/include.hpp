@@ -15,15 +15,16 @@
 #include <pcl/visualization/cloud_viewer.h>
 #include <pcl/visualization/pcl_visualizer.h>
 
+using pcl::PointXYZRGBNormal;
+using pcl::PointXYZRGB;
 //XYZ and RGB Pointcloud
 
-typedef pcl::PointCloud<pcl::PointXYZRGB> PCLXYZRGBPoint;
-typedef PCLXYZRGBPoint::Ptr PCLXYZRGBPointPtr;
+typedef pcl::PointCloud<PointXYZRGB> PCXYZRGB;
+typedef PCXYZRGB::Ptr PCXYZRGBPtr;
 
 //XYZ and normal Pointcloud
-typedef pcl::PointXYZRGBNormal pointRGBNormal;
-typedef pcl::PointCloud<pointRGBNormal> CloudNormal;
-typedef CloudNormal::Ptr CloudNormalPtr;
+typedef pcl::PointCloud<PointXYZRGBNormal> PCNormal;
+typedef PCNormal::Ptr PCNormalPtr;
 
 
 #endif /* INCLUDE_HPP_ */
