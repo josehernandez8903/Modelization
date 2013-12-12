@@ -4,7 +4,6 @@
 #include "../include/planeDetection.hpp"
 #include "../include/Registration.hpp"
 
-//Todo : remake the testbank with less movement
 
 int
 main (int argc, char** argv)
@@ -38,7 +37,7 @@ main (int argc, char** argv)
 //	Modelization::planeDetection::voxel_filter(cloud_1,0.01f,cloud_downsampled_1);
 	timer.tic();
 
-	Modelization::Registration registrator;
+	Modelization::Registration registrator(true,true);
 	registrator.run(cloud_1,cloud_tg,*cloud_result);
 //	registrator.estimateNormals(cloud_1,*cloud_in);
 

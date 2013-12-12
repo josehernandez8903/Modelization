@@ -58,6 +58,9 @@ private:
 			const PCNormal::ConstPtr& tgt,
 			const CorrespondencesPtr& correspondences);
 
+	void view (const PCXYZRGB::ConstPtr &src
+			, const PCXYZRGB::ConstPtr &tgt);
+
 	void estimateNormals(const PCXYZRGBPtr& cloud_in
 			, PCNormal& cloud_out
 			, bool _downsample

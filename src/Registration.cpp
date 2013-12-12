@@ -29,8 +29,9 @@ void Registration::run(const PCXYZRGBPtr &_src
 	Eigen::Matrix4d transform;
 	PCNormalPtr src(new PCNormal);
 	PCNormalPtr tgt(new PCNormal);
-	estimateNormals(_src,*src,true,0.005);
-	estimateNormals(_tgt,*tgt,true,0.005);
+	PCXYZRGBPtr output(new PCXYZRGB);
+	estimateNormals(_src,*src,true,0.01);
+	estimateNormals(_tgt,*tgt,true,0.01);
 
 #ifdef _DEBUG
 	//	pcl::visualization::PointCloudColorHandlerRGBField<PointXYZRGBNormal> color_handler1 (src);
@@ -52,6 +53,8 @@ pcl::removeNaNFromPointCloud(*src,*src,temp);
 pcl::removeNaNFromPointCloud(*tgt,*tgt,temp);
 
 	icp (src, tgt, transform);
+	transformPointCloud (*_src, *output, transform.cast<float> ());
+	view (output, _tgt);
 
 }
 
@@ -154,6 +157,27 @@ void Registration::view (const PCNormal::ConstPtr &src, const PCNormal::ConstPtr
 /************************************************************************************/
 /************************************************************************************/
 /************************************************************************************/
+
+void Registration::view (const PCXYZRGB::ConstPtr &src, const PCXYZRGB::ConstPtr &tgt)
+{
+
+	pcl::visualization::PointCloudColorHandlerRGBField<PointXYZRGB> handler_src(src);
+	pcl::visualization::PointCloudColorHandlerRGBField<PointXYZRGB> handler_tgt(tgt);
+	if (!vis->updatePointCloud<PointXYZRGB> (src,handler_src, "source"))
+	{
+		vis->addPointCloud<PointXYZRGB> (src,handler_src, "source");
+		vis->resetCameraViewpoint ("source");
+	}
+	if (!vis->updatePointCloud<PointXYZRGB> (tgt, handler_tgt, "target")) vis->addPointCloud<PointXYZRGB> (tgt, handler_tgt, "target");
+	vis->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_OPACITY, 0.5, "source");
+	vis->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_OPACITY, 0.7, "target");
+	vis->spin();
+}
+
+
+/************************************************************************************/
+/************************************************************************************/
+/************************************************************************************/
 void Registration::estimateNormals(const PCXYZRGBPtr& cloud_in
 		, PCNormal& cloud_out
 		, bool _downsample
@@ -229,8 +253,8 @@ void Registration::icp (const PCNormalPtr &src
 	}
 	while (!converged);
 	cout<<"Converged "<<converged<<endl;
-	view (src, tgt, good_correspondences);
-	view (output, tgt, good_correspondences);
+//	view (src, tgt, good_correspondences);
+//	view (output, tgt, good_correspondences);
 	transform = final_transform;
 }
 } /* namespace Modelization */
