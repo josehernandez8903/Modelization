@@ -10,13 +10,60 @@
 namespace Modelization {
 
 Registration::Registration(bool _rejection, bool _reciprocal):
-						rejection(_rejection), reciprocal(_reciprocal)
+										rejection(_rejection), reciprocal(_reciprocal)
 {
 
 }
 
 Registration::~Registration() {
 
+}
+
+void Registration::runLoop(const PCXYZRGBPtr &_in
+		, PCXYZRGB &cloud_r){
+
+#ifdef _DEBUG
+	setVerbosityLevel (pcl::console::L_DEBUG);
+#endif
+
+	PCXYZRGBPtr output(new PCXYZRGB);
+	Eigen::Matrix4d transform;
+	PCNormalPtr src(new PCNormal);
+	std::vector<int> temp;
+
+	estimateNormals(_in,*src,true,0.01);
+	pcl::removeNaNFromPointCloud(*src,*src,temp);
+
+	if(previousCloud.get()==0){
+		fullCloud.reset(new PCXYZRGB);
+		previousCloud.swap(src);
+		previousTransform = Eigen::Matrix4d::Identity ();
+		cerr<<"Setting up"<<endl;
+	}
+	else{
+
+		icp (src, previousCloud, transform);
+		previousCloud.swap(src);
+		previousTransform=previousTransform*transform;
+	}
+
+	transformPointCloud (*_in, *output, previousTransform.cast<float> ());
+	cout<<"Matrix transform"<<endl<< previousTransform<<endl;
+
+	PCXYZRGBPtr tempCloud = fullCloud->makeShared();
+	cout << "Number of points before merging = "<<tempCloud->size()<<endl;
+	*tempCloud+=*output;
+	cout << "Number of points pre-filter = "<<tempCloud->size()<<endl;
+	Modelization::planeDetection::voxel_filter(tempCloud,0.005,*fullCloud);
+	cout << "Number of points post-filter = "<<fullCloud->size()<<endl;
+	cloud_r=*fullCloud;
+
+//	pcl::visualization::CloudViewer viewer("Example");
+//	viewer.showCloud(fullCloud);
+//	while(!viewer.wasStopped())
+//	{
+//
+//	}
 }
 
 void Registration::run(const PCXYZRGBPtr &_src
@@ -30,27 +77,12 @@ void Registration::run(const PCXYZRGBPtr &_src
 	PCNormalPtr src(new PCNormal);
 	PCNormalPtr tgt(new PCNormal);
 	PCXYZRGBPtr output(new PCXYZRGB);
-	estimateNormals(_src,*src,true,0.01);
-	estimateNormals(_tgt,*tgt,true,0.01);
+	estimateNormals(_src,*src,true,0.005);
+	estimateNormals(_tgt,*tgt,true,0.005);
 
-#ifdef _DEBUG
-	//	pcl::visualization::PointCloudColorHandlerRGBField<PointXYZRGBNormal> color_handler1 (src);
-	//	pcl::visualization::PCLVisualizer viewer1("Input1");
-	//	viewer1.setBackgroundColor (0.0, 0.0, 0.0);
-	//	viewer1.addPointCloud<PointXYZRGBNormal>(src,color_handler1,"Input_cloud2");
-	//	viewer1.addPointCloudNormals<PointXYZRGBNormal,PointXYZRGBNormal>(src, src,20,0.05,"Input_Normals2");
-	//	viewer1.spin();
-	//
-	//	pcl::visualization::PointCloudColorHandlerRGBField<PointXYZRGBNormal> color_handler2 (tgt);
-	//	pcl::visualization::PCLVisualizer viewer2("Input2");
-	//	viewer2.setBackgroundColor (0.0, 0.0, 0.0);
-	//	viewer2.addPointCloud<PointXYZRGBNormal>(tgt,color_handler2,"Input_cloud2");
-	//	viewer2.addPointCloudNormals<PointXYZRGBNormal,PointXYZRGBNormal>(tgt, tgt,20,0.05,"Input_Normals2");
-	//	viewer2.spin();
-#endif
 	std::vector<int> temp;
-pcl::removeNaNFromPointCloud(*src,*src,temp);
-pcl::removeNaNFromPointCloud(*tgt,*tgt,temp);
+	pcl::removeNaNFromPointCloud(*src,*src,temp);
+	pcl::removeNaNFromPointCloud(*tgt,*tgt,temp);
 
 	icp (src, tgt, transform);
 	transformPointCloud (*_src, *output, transform.cast<float> ());
@@ -69,17 +101,15 @@ void Registration::rejectBadCorrespondences (const CorrespondencesPtr &all_corre
 		Correspondences &remaining_correspondences)
 {
 	pcl::registration::CorrespondenceRejectorMedianDistance rej;
-	rej.setMedianFactor (8.79241104);
+	rej.setMedianFactor (4.79241104);
 	rej.setInputCorrespondences (all_correspondences);
-
 	rej.getCorrespondences (remaining_correspondences);
-	//Todo : angle correspondances
 
 	return;
 
 	CorrespondencesPtr remaining_correspondences_temp (new Correspondences);
 	rej.getCorrespondences (*remaining_correspondences_temp);
-	PCL_DEBUG ("[rejectBadCorrespondences] Number of correspondences remaining after rejection: %d\n", remaining_correspondences_temp->size ());
+	//PCL_DEBUG ("[rejectBadCorrespondences] Number of correspondences remaining after rejection: %d\n", remaining_correspondences_temp->size ());
 
 	// Reject if the angle between the normals is really off
 	pcl::registration::CorrespondenceRejectorSurfaceNormal rej_normals;
@@ -100,15 +130,15 @@ void Registration::findCorrespondences (const PCNormalPtr &src,
 		const PCNormalPtr &tgt,
 		Correspondences &all_correspondences)
 {
-	//CorrespondenceEstimationNormalShooting<PointT, PointT, PointT> est;
-	//CorrespondenceEstimation<PointT, PointT> est;
-	pcl::registration::CorrespondenceEstimationBackProjection<PointXYZRGBNormal, PointXYZRGBNormal, PointXYZRGBNormal> est;
+	pcl::registration::CorrespondenceEstimationNormalShooting<PointXYZRGBNormal, PointXYZRGBNormal, PointXYZRGBNormal> est;
+	//pcl::registration::CorrespondenceEstimation<PointT, PointT> est;
+	//pcl::registration::CorrespondenceEstimationBackProjection<PointXYZRGBNormal, PointXYZRGBNormal, PointXYZRGBNormal> est;
 	est.setInputSource (src);
 	est.setInputTarget (tgt);
 
 	est.setSourceNormals (src);
-	est.setTargetNormals (tgt);
-	est.setKSearch (50);
+//	est.setTargetNormals (tgt);
+	est.setKSearch (20);
 
 	if (reciprocal)
 		est.determineReciprocalCorrespondences (all_correspondences);
@@ -208,14 +238,16 @@ void Registration::icp (const PCNormalPtr &src
 		, const PCNormalPtr &tgt
 		, Eigen::Matrix4d &transform)
 {
-	vis.reset(new pcl::visualization::PCLVisualizer("Registration example"));
+	Eigen::Matrix4d final_transform (Eigen::Matrix4d::Identity ());
+	pcl::console::TicToc timer;
+//	vis.reset(new pcl::visualization::PCLVisualizer("Registration example"));
 	CorrespondencesPtr all_correspondences (new Correspondences),
 			good_correspondences (new Correspondences);
-
 	PCNormalPtr output (new PCNormal);
+
 	*output = *src;
 
-	Eigen::Matrix4d final_transform (Eigen::Matrix4d::Identity ());
+
 
 	int iterations = 0;
 	pcl::registration::DefaultConvergenceCriteria<double> converged (iterations, transform, *good_correspondences);
@@ -224,31 +256,35 @@ void Registration::icp (const PCNormalPtr &src
 	do
 	{
 		// Find correspondences
+		timer.tic();
 		findCorrespondences (output, tgt, *all_correspondences);
+		cout<<"Find Correspondances "<<": "<<timer.toc()<<" Miliseconds"<<endl;
 		PCL_DEBUG ("Number of correspondences found: %d\n", all_correspondences->size ());
 
 		if (rejection)
 		{
 			// Reject correspondences
+			timer.tic();
 			rejectBadCorrespondences (all_correspondences, output, tgt, *good_correspondences);
+			cout<<"Reject Correspondances "<<": "<<timer.toc()<<" Miliseconds"<<endl;
 			PCL_DEBUG ("Number of correspondences remaining after rejection: %d\n", good_correspondences->size ());
 		}
 		else
+			timer.tic();
 			*good_correspondences = *all_correspondences;
 
 		// Find transformation
 		findTransformation (output, tgt, good_correspondences, transform);
-
+		cout<<"Find Transformation "<<": "<<timer.toc()<<" Miliseconds"<<endl;
 		// Obtain the final transformation
 		final_transform = transform * final_transform;
 
 		// Transform the data
+		timer.tic();
 		transformPointCloudWithNormals (*src, *output, final_transform.cast<float> ());
-
+		cout<<"Transform Cloud "<<": "<<timer.toc()<<" Miliseconds"<<endl;
 		// Check if convergence has been reached
 		++iterations;
-
-		// Visualize the results
 
 	}
 	while (!converged);

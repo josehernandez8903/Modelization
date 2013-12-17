@@ -4,67 +4,89 @@
 #include "../include/planeDetection.hpp"
 #include "../include/Registration.hpp"
 
+#define INIT 1
+#define MAX 10
 
 int
 main (int argc, char** argv)
 {
-	if(argc!=3)
+	if(argc<2)
 	{
 		std::cerr<<"Error: filename required"<<std::endl;
 		return 0;
 	}
 
+	uint i;
+
 
 	PCXYZRGBPtr cloud_result (new PCXYZRGB);
 
 	PCXYZRGBPtr cloud_1 (new PCXYZRGB);
-	PCXYZRGBPtr cloud_tg (new PCXYZRGB);
-
 
 	PCXYZRGBPtr cloud_downsampled_1 (new PCXYZRGB);
 
-
+	std::vector<PCXYZRGBPtr> files;
 
 	std::cout<<"Starting"<<std::endl;
-	if(pcl::io::loadPCDFile(argv[1],*cloud_1)!=0 || pcl::io::loadPCDFile(argv[2],*cloud_tg)!=0)
+	for (i=INIT;i<=MAX;i++)
 	{
-		std::cerr<<"File not found or corrupt";
-		return 0;
+		std::ostringstream fname;
+		fname<<argv[1]<<i<<".pcd";
+		if(pcl::io::loadPCDFile(fname.str(),*cloud_1)!=0)
+		{
+			std::cerr<<"File "<< fname.str()<<" not found or corrupt, Skipping...";
+			continue;
+		}
+		cout<<"Loaded "<<fname.str()<<endl;
+		files.push_back(cloud_1);
+		cloud_1.reset(new PCXYZRGB);
 	}
+	if(files.size()==0)
+	{
+		std::cerr<<"No files were loaded, verify input parameters";
+		return -1;
+	}
+
 	std::cout<<"Finished Loading Files"<<std::endl;
 	pcl::console::TicToc timer;
 
-//	Modelization::planeDetection::voxel_filter(cloud_1,0.01f,cloud_downsampled_1);
-	timer.tic();
+	//	Modelization::planeDetection::voxel_filter(cloud_1,0.01f,cloud_downsampled_1);
+
 
 	Modelization::Registration registrator(true,true);
-	registrator.run(cloud_1,cloud_tg,*cloud_result);
-//	registrator.estimateNormals(cloud_1,*cloud_in);
+	i=0;
+	while(files.size()>i)
+	{
+		timer.tic();
+		registrator.runLoop(files[i++],*cloud_result);
+		cout<<"Image "<<i<<endl;
+		cout<<"registration "<<i<<": "<<timer.toc()<<" Miliseconds"<<endl;
 
-	cout<<"registration : "<<timer.toc()<<" Miliseconds"<<endl;
+	}
+	pcl::visualization::CloudViewer viewer("Cloud Viewer");
+	viewer.showCloud(cloud_result,"resultant Cloud");
+	while (!viewer.wasStopped ())
+	{
+	}
 
-//	pcl::visualization::PointCloudColorHandlerRGBField<PointXYZRGBNormal> color_handler (cloud_in);
-//	pcl::visualization::PCLVisualizer viewer("Downsampled");
-//	viewer.setBackgroundColor (0.0, 0.0, 0.0);
-//	viewer.addPointCloud<PointXYZRGBNormal>(cloud_in,color_handler,"Input_cloud2");
-//	viewer.addPointCloudNormals<PointXYZRGBNormal,PointXYZRGBNormal>(cloud_in, cloud_in,20,0.05,"Input_Normals2");
+//		pcl::visualization::PointCloudColorHandlerRGBField<PointXYZRGBNormal> color_handler (cloud_in);
+//		pcl::visualization::PCLVisualizer viewer("Downsampled");
+//		viewer.setBackgroundColor (0.0, 0.0, 0.0);
+//		viewer.addPointCloud<PointXYZRGBNormal>(cloud_in,color_handler,"Input_cloud2");
+//		viewer.addPointCloudNormals<PointXYZRGBNormal,PointXYZRGBNormal>(cloud_in, cloud_in,20,0.05,"Input_Normals2");
 
 
-//	while (!viewer.wasStopped ())
-//	{
-//		viewer.spinOnce (100);
-//	}
+
+//		while (!viewer.wasStopped ())
+//		{
+//			viewer.spinOnce (100);
+//		}
 
 	//	Modelization::planeDetection Modelizer;
 	//	Modelizer.run(cloud_in,cloud_filtered,cloud_result);
 	//	pcl::visualization::CloudViewer viewer("Cloud Viewer");
-
-	//blocks until the cloud is actually rendered
 	//	viewer.showCloud(cloud_result,"resultant Cloud");
 
-	//	while (!viewer.wasStopped ())
-	//	{
-	//
-	//	}
+	cout << "finished";
 	return 0;
 }
