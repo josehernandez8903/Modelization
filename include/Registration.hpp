@@ -32,8 +32,11 @@ typedef boost::shared_ptr<Correspondences> CorrespondencesPtr;
 
 class Registration {
 public:
-	Registration(bool _rejection = true, bool _reiprocal = false);
+	Registration(bool _rejection = true, bool _reiprocal = true);
 	virtual ~Registration();
+
+	void runLoop(const PCXYZRGBPtr &_in
+				, PCXYZRGB &cloud_r);
 
 	void run(const PCXYZRGBPtr &_src
 			, const PCXYZRGBPtr &_tgt
@@ -75,6 +78,12 @@ private:
 	bool rejection;
 	bool reciprocal;
 	boost::shared_ptr<pcl::visualization::PCLVisualizer> vis;
+
+	PCNormalPtr previousCloud;
+	PCXYZRGBPtr fullCloud;
+
+	Eigen::Matrix4d previousTransform;
+
 };
 
 } /* namespace Modelization */
