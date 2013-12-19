@@ -10,22 +10,79 @@
 namespace Modelization {
 
 Registration::Registration(bool _rejection, bool _reciprocal):
-										rejection(_rejection), reciprocal(_reciprocal)
+				dataReady(false), rejection(_rejection), reciprocal(_reciprocal),output_()
 {
 
 }
 
 Registration::~Registration() {
 
+	if(thread_running)
+		process_.join();
+}
+
+void Registration::startThread(const PCXYZRGBConstPtr &_in){
+
+	if(dataReady)
+	{
+		//		cerr<<"Result Still in buffer call Registration::getResult"<<endl;
+		return;
+	}
+	boost::mutex::scoped_lock local_mutex(start_process_mutex_,boost::try_to_lock);
+	if(local_mutex.owns_lock())
+	{
+		input_=_in->makeShared();
+		output_.reset(new PCXYZRGB);
+		process_=boost::thread(&Registration::runLoop,this,input_,output_);
+//				process_=boost::thread(&Registration::DummyThreadTest,this,input_,output_);
+//		runLoop(input_,output_);
+	}
+	else
+		cout<<"Still Processing When called Start Tread"<<endl;
+
+}
+
+bool Registration::getResult(PCXYZRGBPtr &_out){
+	if(dataReady)
+	{
+		_out.swap(output_);
+		dataReady = false;
+		return true;
+	}
+	else
+		return 0;
+
+}
+
+void Registration::DummyThreadTest(const PCXYZRGBConstPtr &_in
+		, PCXYZRGBPtr &cloud_r){
+
+	thread_running = true;
+	boost::mutex::scoped_lock local_mutex(start_process_mutex_);
+	if(local_mutex.owns_lock())
+		cout<<"sucess on getting process mutex"<<endl;
+	else
+		cerr<<"Failed to get mutex on process thread, this should not happen"<<endl;
+
+	cout<<"Thread Running"<<endl;
+	boost::posix_time::seconds wtime(2);
+	boost::this_thread::sleep(wtime);
+	*cloud_r=*_in;
+
+	dataReady = true;
+	thread_running = false;
+	cout<<"Thread Finished"<<endl;
+
 }
 
 void Registration::runLoop(const PCXYZRGBPtr &_in
-		, PCXYZRGB &cloud_r){
+		, PCXYZRGBPtr &cloud_r){
 
-#ifdef _DEBUG
-	setVerbosityLevel (pcl::console::L_DEBUG);
-#endif
+	thread_running = true;
+	boost::mutex::scoped_lock local_mutex(start_process_mutex_);
 
+	cout<<"Thread Running"<<endl;
+	thread_running = true;
 	PCXYZRGBPtr output(new PCXYZRGB);
 	Eigen::Matrix4d transform;
 	PCNormalPtr src(new PCNormal);
@@ -56,22 +113,16 @@ void Registration::runLoop(const PCXYZRGBPtr &_in
 	cout << "Number of points pre-filter = "<<tempCloud->size()<<endl;
 	Modelization::planeDetection::voxel_filter(tempCloud,0.005,*fullCloud);
 	cout << "Number of points post-filter = "<<fullCloud->size()<<endl;
-	cloud_r=*fullCloud;
+	*cloud_r=*fullCloud;
 
-//	pcl::visualization::CloudViewer viewer("Example");
-//	viewer.showCloud(fullCloud);
-//	while(!viewer.wasStopped())
-//	{
-//
-//	}
+	dataReady = true;
+	thread_running = false;
+	cout<<"Thread Finished"<<endl;
 }
 
 void Registration::run(const PCXYZRGBPtr &_src
 		, const PCXYZRGBPtr &_tgt
 		, PCXYZRGB &cloud_r){
-#ifdef _DEBUG
-	setVerbosityLevel (pcl::console::L_DEBUG);
-#endif
 
 	Eigen::Matrix4d transform;
 	PCNormalPtr src(new PCNormal);
@@ -137,7 +188,7 @@ void Registration::findCorrespondences (const PCNormalPtr &src,
 	est.setInputTarget (tgt);
 
 	est.setSourceNormals (src);
-//	est.setTargetNormals (tgt);
+	//	est.setTargetNormals (tgt);
 	est.setKSearch (20);
 
 	if (reciprocal)
@@ -240,7 +291,7 @@ void Registration::icp (const PCNormalPtr &src
 {
 	Eigen::Matrix4d final_transform (Eigen::Matrix4d::Identity ());
 	pcl::console::TicToc timer;
-//	vis.reset(new pcl::visualization::PCLVisualizer("Registration example"));
+	//	vis.reset(new pcl::visualization::PCLVisualizer("Registration example"));
 	CorrespondencesPtr all_correspondences (new Correspondences),
 			good_correspondences (new Correspondences);
 	PCNormalPtr output (new PCNormal);
@@ -271,7 +322,7 @@ void Registration::icp (const PCNormalPtr &src
 		}
 		else
 			timer.tic();
-			*good_correspondences = *all_correspondences;
+		*good_correspondences = *all_correspondences;
 
 		// Find transformation
 		findTransformation (output, tgt, good_correspondences, transform);
@@ -289,8 +340,8 @@ void Registration::icp (const PCNormalPtr &src
 	}
 	while (!converged);
 	cout<<"Converged "<<converged<<endl;
-//	view (src, tgt, good_correspondences);
-//	view (output, tgt, good_correspondences);
+	//	view (src, tgt, good_correspondences);
+	//	view (output, tgt, good_correspondences);
 	transform = final_transform;
 }
 } /* namespace Modelization */

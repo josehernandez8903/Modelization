@@ -35,12 +35,22 @@ public:
 	Registration(bool _rejection = true, bool _reiprocal = true);
 	virtual ~Registration();
 
+	void startThread(const PCXYZRGBConstPtr &_in); //Creates a copy of the input.
+
+	bool getResult(PCXYZRGBPtr &_out);
+
+	void DummyThreadTest(const PCXYZRGBConstPtr &_in
+			, PCXYZRGBPtr &cloud_r);
+
 	void runLoop(const PCXYZRGBPtr &_in
-				, PCXYZRGB &cloud_r);
+				, PCXYZRGBPtr &cloud_r);
 
 	void run(const PCXYZRGBPtr &_src
 			, const PCXYZRGBPtr &_tgt
 			, PCXYZRGB &cloud_r);
+
+
+	bool dataReady;
 
 private:
 	void rejectBadCorrespondences (const CorrespondencesPtr& all_correspondences,
@@ -77,12 +87,18 @@ private:
 
 	bool rejection;
 	bool reciprocal;
+	bool thread_running;
 	boost::shared_ptr<pcl::visualization::PCLVisualizer> vis;
 
+	PCXYZRGBPtr input_;
+	PCXYZRGBPtr output_;
 	PCNormalPtr previousCloud;
 	PCXYZRGBPtr fullCloud;
 
 	Eigen::Matrix4d previousTransform;
+
+	boost::thread process_;
+	boost::mutex start_process_mutex_;
 
 };
 

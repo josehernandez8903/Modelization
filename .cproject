@@ -30,6 +30,7 @@
 									<listOptionValue builtIn="false" value="/usr/include/pcl-1.7"/>
 									<listOptionValue builtIn="false" value="/usr/include/eigen3"/>
 									<listOptionValue builtIn="false" value="/usr/include/vtk-5.8"/>
+									<listOptionValue builtIn="false" value="/usr/include/ni"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.preprocessor.def.2070467659" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="_DEBUG=1"/>
@@ -60,6 +61,8 @@
 									<listOptionValue builtIn="false" value="vtkRendering"/>
 									<listOptionValue builtIn="false" value="pcl_registration"/>
 									<listOptionValue builtIn="false" value="pcl_features"/>
+									<listOptionValue builtIn="false" value="OpenNI"/>
+									<listOptionValue builtIn="false" value="boost_thread"/>
 								</option>
 								<option id="gnu.cpp.link.option.paths.1373510074" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="/usr/local/lib"/>

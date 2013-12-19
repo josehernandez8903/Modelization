@@ -2,7 +2,7 @@
 
 #include "../include/include.hpp"
 #include "../include/planeDetection.hpp"
-#include "../include/Registration.hpp"
+#include "../include/LiveRegistration.h"
 
 #define INIT 1
 #define MAX 10
@@ -10,64 +10,68 @@
 int
 main (int argc, char** argv)
 {
-	if(argc<2)
-	{
-		std::cerr<<"Error: filename required"<<std::endl;
-		return 0;
-	}
-
-	uint i;
-
-
-	PCXYZRGBPtr cloud_result (new PCXYZRGB);
-
-	PCXYZRGBPtr cloud_1 (new PCXYZRGB);
-
-	PCXYZRGBPtr cloud_downsampled_1 (new PCXYZRGB);
-
-	std::vector<PCXYZRGBPtr> files;
-
-	std::cout<<"Starting"<<std::endl;
-	for (i=INIT;i<=MAX;i++)
-	{
-		std::ostringstream fname;
-		fname<<argv[1]<<i<<".pcd";
-		if(pcl::io::loadPCDFile(fname.str(),*cloud_1)!=0)
-		{
-			std::cerr<<"File "<< fname.str()<<" not found or corrupt, Skipping...";
-			continue;
-		}
-		cout<<"Loaded "<<fname.str()<<endl;
-		files.push_back(cloud_1);
-		cloud_1.reset(new PCXYZRGB);
-	}
-	if(files.size()==0)
-	{
-		std::cerr<<"No files were loaded, verify input parameters";
-		return -1;
-	}
-
-	std::cout<<"Finished Loading Files"<<std::endl;
-	pcl::console::TicToc timer;
+#ifdef _DEBUG
+	setVerbosityLevel (pcl::console::L_ALWAYS);
+#endif
+//	if(argc<2)
+//	{
+//		std::cerr<<"Error: filename required"<<std::endl;
+//		return 0;
+//	}
+//
+//	uint i;
+//
+//
+//	PCXYZRGBPtr cloud_result (new PCXYZRGB);
+//
+//	PCXYZRGBPtr cloud_1 (new PCXYZRGB);
+//
+//	PCXYZRGBPtr cloud_downsampled_1 (new PCXYZRGB);
+//
+//	std::vector<PCXYZRGBPtr> files;
+//
+//	std::cout<<"Starting"<<std::endl;
+//	for (i=INIT;i<=MAX;i++)
+//	{
+//		std::ostringstream fname;
+//		fname<<argv[1]<<i<<".pcd";
+//		if(pcl::io::loadPCDFile(fname.str(),*cloud_1)!=0)
+//		{
+//			std::cerr<<"File "<< fname.str()<<" not found or corrupt, Skipping...";
+//			continue;
+//		}
+//		cout<<"Loaded "<<fname.str()<<endl;
+//		files.push_back(cloud_1);
+//		cloud_1.reset(new PCXYZRGB);
+//	}
+//	if(files.size()==0)
+//	{
+//		std::cerr<<"No files were loaded, verify input parameters";
+//		return -1;
+//	}
+//
+//	std::cout<<"Finished Loading Files"<<std::endl;
+//	pcl::console::TicToc timer;
 
 	//	Modelization::planeDetection::voxel_filter(cloud_1,0.01f,cloud_downsampled_1);
 
 
-	Modelization::Registration registrator(true,true);
-	i=0;
-	while(files.size()>i)
-	{
-		timer.tic();
-		registrator.runLoop(files[i++],*cloud_result);
-		cout<<"Image "<<i<<endl;
-		cout<<"registration "<<i<<": "<<timer.toc()<<" Miliseconds"<<endl;
-
-	}
-	pcl::visualization::CloudViewer viewer("Cloud Viewer");
-	viewer.showCloud(cloud_result,"resultant Cloud");
-	while (!viewer.wasStopped ())
-	{
-	}
+	Modelization::LiveRegistration registrator;
+	registrator.run();
+//	i=0;
+//	while(files.size()>i)
+//	{
+//		timer.tic();
+//		registrator.runLoop(files[i++],*cloud_result);
+//		cout<<"Image "<<i<<endl;
+//		cout<<"registration "<<i<<": "<<timer.toc()<<" Miliseconds"<<endl;
+//
+//	}
+//	pcl::visualization::CloudViewer viewer("Cloud Viewer");
+//	viewer.showCloud(cloud_result,"resultant Cloud");
+//	while (!viewer.wasStopped ())
+//	{
+//	}
 
 //		pcl::visualization::PointCloudColorHandlerRGBField<PointXYZRGBNormal> color_handler (cloud_in);
 //		pcl::visualization::PCLVisualizer viewer("Downsampled");

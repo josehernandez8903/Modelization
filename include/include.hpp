@@ -21,6 +21,7 @@ using pcl::PointXYZRGB;
 
 typedef pcl::PointCloud<PointXYZRGB> PCXYZRGB;
 typedef PCXYZRGB::Ptr PCXYZRGBPtr;
+typedef PCXYZRGB::ConstPtr PCXYZRGBConstPtr;
 
 //XYZ and normal Pointcloud
 typedef pcl::PointCloud<PointXYZRGBNormal> PCNormal;
