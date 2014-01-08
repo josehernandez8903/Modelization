@@ -5,7 +5,8 @@
 #include "../include/Registration.hpp"
 
 #define INIT 1
-#define MAX 10
+#define ITER 3
+#define MAX 4
 
 int
 main (int argc, char** argv)
@@ -20,6 +21,9 @@ main (int argc, char** argv)
 
 
 	PCXYZRGBPtr cloud_result (new PCXYZRGB);
+	PCXYZRGBPtr cloud_initial (new PCXYZRGB);
+	PCXYZRGBPtr key1 (new PCXYZRGB);
+	PCXYZRGBPtr key2 (new PCXYZRGB);
 
 	PCXYZRGBPtr cloud_1 (new PCXYZRGB);
 
@@ -28,7 +32,7 @@ main (int argc, char** argv)
 	std::vector<PCXYZRGBPtr> files;
 
 	std::cout<<"Starting"<<std::endl;
-	for (i=INIT;i<=MAX;i++)
+	for (i=INIT;i<=MAX;i+=ITER)
 	{
 		std::ostringstream fname;
 		fname<<argv[1]<<i<<".pcd";
@@ -39,7 +43,17 @@ main (int argc, char** argv)
 		}
 		cout<<"Loaded "<<fname.str()<<endl;
 		files.push_back(cloud_1);
+
+		//Debug
+		if(cloud_initial.get()==NULL)
+			cloud_initial = cloud_1->makeShared();
+		else
+		*cloud_initial+=*cloud_1;
+		//Debug
+
+
 		cloud_1.reset(new PCXYZRGB);
+
 	}
 	if(files.size()==0)
 	{
@@ -63,11 +77,21 @@ main (int argc, char** argv)
 		cout<<"registration "<<i<<": "<<timer.toc()<<" Miliseconds"<<endl;
 
 	}
+
+//	pcl::visualization::CloudViewer viewer2("Before");
+//	viewer2.showCloud(cloud_initial,"Initial Cloud");
+//	viewer2.showCloud(cloud_initial,"Initial Cloud");
+//	while (!viewer2.wasStopped ())
+//	{
+//	}
+
 	pcl::visualization::CloudViewer viewer("Cloud Viewer");
 	viewer.showCloud(cloud_result,"resultant Cloud");
 	while (!viewer.wasStopped ())
 	{
 	}
+
+
 
 //		pcl::visualization::PointCloudColorHandlerRGBField<PointXYZRGBNormal> color_handler (cloud_in);
 //		pcl::visualization::PCLVisualizer viewer("Downsampled");
