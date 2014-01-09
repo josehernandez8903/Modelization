@@ -189,7 +189,7 @@ void Registration::findCorrespondences (const PCNormalPtr &src,
 
 	est.setSourceNormals (src);
 	//	est.setTargetNormals (tgt);
-	est.setKSearch (20);
+	est.setKSearch (10);
 
 	if (reciprocal)
 		est.determineReciprocalCorrespondences (all_correspondences);
@@ -310,6 +310,7 @@ void Registration::icp (const PCNormalPtr &src
 		timer.tic();
 		findCorrespondences (output, tgt, *all_correspondences);
 		cout<<"Find Correspondances "<<": "<<timer.toc()<<" Miliseconds"<<endl;
+
 		PCL_DEBUG ("Number of correspondences found: %d\n", all_correspondences->size ());
 
 		if (rejection)

@@ -15,6 +15,7 @@
 #include <pcl/visualization/cloud_viewer.h>
 #include <pcl/visualization/pcl_visualizer.h>
 
+#include <pcl/io/pcd_io.h>
 using pcl::PointXYZRGBNormal;
 using pcl::PointXYZRGB;
 //XYZ and RGB Pointcloud

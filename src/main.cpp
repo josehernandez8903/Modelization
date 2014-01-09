@@ -5,7 +5,8 @@
 #include "../include/LiveRegistration.h"
 
 #define INIT 1
-#define MAX 10
+#define ITER 3
+#define MAX 4
 
 int
 main (int argc, char** argv)
