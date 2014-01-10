@@ -34,4 +34,6 @@ typedef pcl::FPFHSignature33 FPFHSignature;
 typedef pcl::PointCloud<pcl::FPFHSignature33> PCFPFH;
 typedef PCFPFH::Ptr PCFPFHPtr;
 
+typedef boost::shared_ptr<Eigen::Matrix4d> transformPtr;
+
 #endif /* INCLUDE_HPP_ */

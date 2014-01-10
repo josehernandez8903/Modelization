@@ -5,8 +5,8 @@
 #include "../include/Registration.hpp"
 
 #define INIT 1
-#define ITER 3
-#define MAX 4
+#define ITER 9
+#define MAX 15
 
 int
 main (int argc, char** argv)
@@ -45,10 +45,10 @@ main (int argc, char** argv)
 		files.push_back(cloud_1);
 
 		//Debug
-		if(cloud_initial.get()==NULL)
-			cloud_initial = cloud_1->makeShared();
-		else
-		*cloud_initial+=*cloud_1;
+//		if(cloud_initial.get()==NULL)
+//			cloud_initial = cloud_1->makeShared();
+//		else
+//		*cloud_initial+=*cloud_1;
 		//Debug
 
 
@@ -72,8 +72,8 @@ main (int argc, char** argv)
 	while(files.size()>i)
 	{
 		timer.tic();
-		registrator.runLoop(files[i++],*cloud_result);
 		cout<<"Image "<<i<<endl;
+		registrator.runLoop(files[i++],*cloud_result);
 		cout<<"registration "<<i<<": "<<timer.toc()<<" Miliseconds"<<endl;
 
 	}

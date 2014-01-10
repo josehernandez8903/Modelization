@@ -56,15 +56,9 @@ public:
 	void runLoop(const PCXYZRGBPtr &_in
 				, PCXYZRGB &cloud_r);
 
-	void runLoop2(const PCXYZRGBPtr &_in
-			, PCXYZRGB &cloud_r);
-
 	void run(const PCXYZRGBPtr &_src
 			, const PCXYZRGBPtr &_tgt
 			, PCXYZRGB &cloud_r);
-
-	void estimateKeypoints (const PCNormalPtr &cloud
-			, PCNormalPtr &keypoints);
 
 
 private:
@@ -98,32 +92,11 @@ private:
 			const PCNormalPtr& tgt,
 			Eigen::Matrix4d& transform);
 
-	int Ransacregistration (const PCNormalPtr &src
-			, const PCNormalPtr &tgt
-			, Eigen::Matrix4d &transform);
+	void checkforKeyframe(const PCXYZRGBPtr &fullCloud
+			, const PCNormalPtr &Cloud
+			, transformPtr &transform);
 
-
-
-	void estimateFPFH (const PCNormalPtr &cloud
-			, const PCNormalPtr &keypoints
-			, PCFPFHPtr &fpfhs);
-
-	void findCorrespondences (const PCFPFHPtr &fpfhs_src
-			, const PCFPFHPtr &fpfhs_tgt
-			, Correspondences &all_correspondences);
-
-	void rejectBadCorrespondencesDistance (const CorrespondencesPtr &all_correspondences,
-	                          const PCNormalPtr &keypoints_src,
-	                          const PCNormalPtr &keypoints_tgt,
-	                          Correspondences &remaining_correspondences);
-
-	void computeTransformation(const PCNormalPtr &src
-			, const PCNormalPtr &tgt
-			, const PCNormalPtr &keypoints_src
-			, const PCNormalPtr &keypoints_tgt
-			, const PCFPFHPtr & fpfhs_src
-			, const PCFPFHPtr & fpfhs_tgt
-			, Eigen::Matrix4d &transform);
+	bool getView(PCXYZRGB &result);
 
 	void visualizeKeypoints(const PCNormalPtr &cloud
 				, const PCNormalPtr &kpoint);
@@ -137,14 +110,19 @@ private:
 
 	bool rejection;
 	bool reciprocal;
+	std::size_t viewframes;
 	boost::shared_ptr<pcl::visualization::PCLVisualizer> vis;
 
+	std::vector<PCNormalPtr> Keyframes;    				//Set of Clouds Representing the full environment
+	std::vector<transformPtr> KeyTransform;				//Transform Matrix relative to previous keyframe
+	std::vector<PCXYZRGBPtr> KeyframeFull;    			//Set of non voxelFiltered Clouds Representing the full environment intended for display
+	transformPtr accTransform;						//Sum of transformation matrices until a new keyframe is found
+
 	PCNormalPtr previousCloud;
-	PCNormalPtr previousKeypoints;
-	PCFPFHPtr previousFeatures;
 	PCXYZRGBPtr fullCloud;
 
 	Eigen::Matrix4d previousTransform;
+	Eigen::Matrix4d identityMatrix;
 
 };
 
