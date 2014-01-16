@@ -10,7 +10,8 @@
 namespace Modelization {
 
 Registration::Registration(bool _rejection, bool _reciprocal):
-				dataReady(false), rejection(_rejection), reciprocal(_reciprocal),output_()
+				dataReady(false), rejection(_rejection), reciprocal(_reciprocal),
+				thread_running(false),output_()
 {
 
 }
