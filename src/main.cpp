@@ -5,8 +5,8 @@
 #include "../include/Registration.hpp"
 
 #define INIT 1
-#define ITER 9
-#define MAX 15
+#define ITER 1
+#define MAX 5
 
 int
 main (int argc, char** argv)
@@ -84,6 +84,8 @@ main (int argc, char** argv)
 //	while (!viewer2.wasStopped ())
 //	{
 //	}
+
+	registrator.getView(*cloud_result);
 
 	pcl::visualization::CloudViewer viewer("Cloud Viewer");
 	viewer.showCloud(cloud_result,"resultant Cloud");

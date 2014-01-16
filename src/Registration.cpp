@@ -55,7 +55,7 @@ void Registration::runLoop(const PCXYZRGBPtr &_in
 //	cout<<*transform<<endl;
 
 	checkforKeyframe(_in,previousCloud,transform);
-	getView(cloud_r);
+
 	//transformPointCloud (*_in, *output, previousTransform.cast<float> ());
 	//cout<<"Matrix transform"<<endl<< previousTransform<<endl;
 
@@ -69,12 +69,12 @@ void Registration::runLoop(const PCXYZRGBPtr &_in
 //	cout << "Number of points post-filter = "<<fullCloud->size()<<endl;
 //	cloud_r=*fullCloud;
 
-		pcl::visualization::CloudViewer viewer("Example");
-		viewer.showCloud(cloud_r.makeShared());
-		while(!viewer.wasStopped())
-		{
-
-		}
+//		pcl::visualization::CloudViewer viewer("Example");
+//		viewer.showCloud(cloud_r.makeShared());
+//		while(!viewer.wasStopped())
+//		{
+//
+//		}
 }
 
 /************************************************************************************/
@@ -403,17 +403,17 @@ void Registration::checkforKeyframe(const PCXYZRGBPtr &fullCloud
 	else{
 		//Add the recent transformation matrix to the last matrices since the last key frame
 		*accTransform = *accTransform**transform;
-
 		//Check for a new keyframe
 		if(true){ //todo:function to check threshold;
-
 			//if so add it and reset the transform matrix
 			Keyframes.push_back(cloud);
 			KeyTransform.push_back(accTransform);
 			KeyframeFull.push_back(fullCloud);
+			accTransform.reset(new Eigen::Matrix4d);
 			*accTransform = identityMatrix;
 		cout<<"Key frame no: "<<Keyframes.size()<<endl;
 		}
+		cout<<"Stored transform"<<endl<<*(KeyTransform[KeyTransform.size()-1])<<endl;
 	}
 
 }
@@ -440,16 +440,16 @@ bool Registration::getView(PCXYZRGB &result)
 		cout<<"inside function total transform previous"<<transform<<endl;
 	//run for the newly acquired keyframes since last function call
 	for(;viewframes<Keyframes.size();viewframes++){
-
+		cout<<viewframes<<"  Actual Transform"<<endl<<*(KeyTransform[KeyTransform.size()-1])<<endl;
 		PCXYZRGBPtr temp(new PCXYZRGB);
 		PCXYZRGBPtr temp2(new PCXYZRGB);
-
+		transform*=*(KeyTransform[viewframes]);
+		cout<<"Applied Transform"<<endl<<transform<<endl;
 		transformPointCloud (*(KeyframeFull[viewframes]), *temp, transform.cast<float> ());
 		Modelization::planeDetection::voxel_filter(temp,0.005,*temp2);
 		*fullCloud+=*temp2;
 	}
-
-	result = *fullCloud;
+	Modelization::planeDetection::voxel_filter(fullCloud,0.05,result);
 	return true;
 }
 

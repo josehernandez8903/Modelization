@@ -60,6 +60,7 @@ public:
 			, const PCXYZRGBPtr &_tgt
 			, PCXYZRGB &cloud_r);
 
+	bool getView(PCXYZRGB &result);
 
 private:
 	void rejectBadCorrespondences (const CorrespondencesPtr& all_correspondences,
@@ -96,7 +97,7 @@ private:
 			, const PCNormalPtr &Cloud
 			, transformPtr &transform);
 
-	bool getView(PCXYZRGB &result);
+
 
 	void visualizeKeypoints(const PCNormalPtr &cloud
 				, const PCNormalPtr &kpoint);
