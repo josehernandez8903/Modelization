@@ -10,7 +10,7 @@
 namespace Modelization {
 
 /************************************************************************************/
-/************************************************************************************/
+/* Default constructor */
 /************************************************************************************/
 Registration::Registration(bool _rejection, bool _reciprocal):
 	rejection(_rejection), reciprocal(_reciprocal), viewframes(0), identityMatrix(Eigen::Matrix4d::Identity())
@@ -19,41 +19,45 @@ Registration::Registration(bool _rejection, bool _reciprocal):
 }
 
 /************************************************************************************/
-/************************************************************************************/
+/* Default Destructor */
 /************************************************************************************/
 Registration::~Registration() {
 
 }
 
-void Registration::runLoop(const PCXYZRGBPtr &_in
-		, PCXYZRGB &cloud_r){
+/************************************************************************************/
+/* Main Running loop, takes an input and adds to the registration cloud */
+/************************************************************************************/
+void Registration::runLoop(const PCXYZRGBPtr &_in){
 
+	// console vervosity for ICP functions
 #ifdef _DEBUG
 	setVerbosityLevel (pcl::console::L_ALWAYS);
 #endif
 
-	PCXYZRGBPtr output(new PCXYZRGB);
-	transformPtr transform(new Eigen::Matrix4d);
-	PCNormalPtr src(new PCNormal);
+	transformPtr transform(new Eigen::Matrix4d);		//ICP resultant transformation Matrix
+	PCNormalPtr src(new PCNormal);						//Input cloud containing surface normals
 	std::vector<int> temp;
 
+	// Estimate surface normals
 	estimateNormals(_in,*src,true,0.01);
 	pcl::removeNaNFromPointCloud(*src,*src,temp);
 
+	//if first cloud just copy to the output
 	if(previousCloud.get()==0){
 		previousCloud.swap(src);
 		*transform = identityMatrix;
 //		cerr<<"Setting up"<<endl;
 	}
+
+	// if not run the registration function to determine the transformation matrix
 	else{
 		icp (src, previousCloud, *transform);
-		//Ransacregistration(src, previousCloud, transform);
+		//Ransacregistration(src, previousCloud, *transform);
 		previousCloud.swap(src);
-		//previousTransform=previousTransform*transform;
 	}
-//	cout<<"Trans matrix: "<<endl;
-//	cout<<*transform<<endl;
 
+	// Check if it is a key frame or not
 	checkforKeyframe(_in,previousCloud,transform);
 
 	//transformPointCloud (*_in, *output, previousTransform.cast<float> ());
@@ -127,20 +131,20 @@ void Registration::rejectBadCorrespondences (const CorrespondencesPtr &all_corre
 
 	return;
 
-	CorrespondencesPtr remaining_correspondences_temp (new Correspondences);
-	rej.getCorrespondences (*remaining_correspondences_temp);
-	//PCL_DEBUG ("[rejectBadCorrespondences] Number of correspondences remaining after rejection: %d\n", remaining_correspondences_temp->size ());
-
-	// Reject if the angle between the normals is really off
-	pcl::registration::CorrespondenceRejectorSurfaceNormal rej_normals;
-	rej_normals.setThreshold (acos (pcl::deg2rad (45.0)));
-	rej_normals.initializeDataContainer<PointXYZRGBNormal, PointXYZRGBNormal> ();
-	rej_normals.setInputCloud<PointXYZRGBNormal> (src);
-	rej_normals.setInputNormals<PointXYZRGBNormal, PointXYZRGBNormal> (src);
-	rej_normals.setInputTarget<PointXYZRGBNormal> (tgt);
-	rej_normals.setTargetNormals<PointXYZRGBNormal, PointXYZRGBNormal> (tgt);
-	rej_normals.setInputCorrespondences (remaining_correspondences_temp);
-	rej_normals.getCorrespondences (remaining_correspondences);
+//	CorrespondencesPtr remaining_correspondences_temp (new Correspondences);
+//	rej.getCorrespondences (*remaining_correspondences_temp);
+//	//PCL_DEBUG ("[rejectBadCorrespondences] Number of correspondences remaining after rejection: %d\n", remaining_correspondences_temp->size ());
+//
+//	// Reject if the angle between the normals is really off
+//	pcl::registration::CorrespondenceRejectorSurfaceNormal rej_normals;
+//	rej_normals.setThreshold (acos (pcl::deg2rad (45.0)));
+//	rej_normals.initializeDataContainer<PointXYZRGBNormal, PointXYZRGBNormal> ();
+//	rej_normals.setInputCloud<PointXYZRGBNormal> (src);
+//	rej_normals.setInputNormals<PointXYZRGBNormal, PointXYZRGBNormal> (src);
+//	rej_normals.setInputTarget<PointXYZRGBNormal> (tgt);
+//	rej_normals.setTargetNormals<PointXYZRGBNormal, PointXYZRGBNormal> (tgt);
+//	rej_normals.setInputCorrespondences (remaining_correspondences_temp);
+//	rej_normals.getCorrespondences (remaining_correspondences);
 }
 
 /************************************************************************************/
@@ -196,10 +200,12 @@ void Registration::view (const PCNormal::ConstPtr &src, const PCNormal::ConstPtr
 	if (!vis->updatePointCloud<PointXYZRGBNormal> (tgt, handler_tgt, "target")) vis->addPointCloud<PointXYZRGBNormal> (tgt, handler_tgt, "target");
 	vis->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_OPACITY, 0.5, "source");
 	vis->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_OPACITY, 0.7, "target");
-	//	if (!vis->updateCorrespondences<PointXYZRGBNormal> (src, tgt, *correspondences, 1))
-	//		vis->addCorrespondences<PointXYZRGBNormal> (src, tgt, *correspondences, 1, "correspondences");
-	//	vis->setShapeRenderingProperties (pcl::visualization::PCL_VISUALIZER_LINE_WIDTH, 1, "correspondences");
+	if (!vis->updateCorrespondences<PointXYZRGBNormal> (src, tgt, *correspondences, 1))
+	{
+		vis->addCorrespondences<PointXYZRGBNormal> (src, tgt, *correspondences, 1, "correspondences");
+		vis->setShapeRenderingProperties (pcl::visualization::PCL_VISUALIZER_LINE_WIDTH, 1, "correspondences");
 	//vis->setShapeRenderingProperties (PCL_VISUALIZER_COLOR, 1.0, 0.0, 0.0, "correspondences");
+	}
 	vis->spin();
 }
 
@@ -449,7 +455,7 @@ bool Registration::getView(PCXYZRGB &result)
 		Modelization::planeDetection::voxel_filter(temp,0.005,*temp2);
 		*fullCloud+=*temp2;
 	}
-	Modelization::planeDetection::voxel_filter(fullCloud,0.05,result);
+	Modelization::planeDetection::voxel_filter(fullCloud,0.01,result);
 	return true;
 }
 
