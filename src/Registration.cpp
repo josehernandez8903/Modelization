@@ -91,19 +91,25 @@ void Registration::run(const PCXYZRGBPtr &_src
 	setVerbosityLevel (pcl::console::L_ALWAYS);
 #endif
 
-	Eigen::Matrix4d transform;
-	PCNormalPtr src(new PCNormal);
-	PCNormalPtr tgt(new PCNormal);
-	PCXYZRGBPtr output(new PCXYZRGB);
+	Eigen::Matrix4d transform;					//Transform Quaternion
+	PCNormalPtr src(new PCNormal);				//Source Cloud
+	PCNormalPtr tgt(new PCNormal);				//Target Cloud
+	PCXYZRGBPtr output(new PCXYZRGB);			//Merged Cloud
+
+	// Obtain both cloud normals using the hardware method.
 	estimateNormals(_src,*src,true,0.005);
 	estimateNormals(_tgt,*tgt,true,0.005);
 
+	//Remove the invalid measurements to optimise the search.
 	std::vector<int> temp;
 	pcl::removeNaNFromPointCloud(*src,*src,temp);
 	pcl::removeNaNFromPointCloud(*tgt,*tgt,temp);
 
+	//Start the ICP algorithm
 	icp (src, tgt, transform);
+	//transform the source cloud and store it on the output
 	transformPointCloud (*_src, *output, transform.cast<float> ());
+	//visualize both transformed source and resuolt
 	view (output, _tgt);
 
 }
@@ -124,6 +130,7 @@ void Registration::rejectBadCorrespondences (const CorrespondencesPtr &all_corre
 	//	rej.setMaximumIterations(100);
 	//	Slow
 
+	//Reject found correspondence if too far from median distance
 	pcl::registration::CorrespondenceRejectorMedianDistance rej;
 	rej.setMedianFactor (4.79241104);
 	rej.setInputCorrespondences (all_correspondences);
@@ -154,8 +161,11 @@ void Registration::findCorrespondences (const PCNormalPtr &src,
 		const PCNormalPtr &tgt,
 		Correspondences &all_correspondences)
 {
+	// estimate correspondences using perpendicular distance to vector as the similarity parameter
 	//pcl::registration::CorrespondenceEstimationNormalShooting<PointXYZRGBNormal, PointXYZRGBNormal, PointXYZRGBNormal> est;
 	//pcl::registration::CorrespondenceEstimation<PointT, PointT> est;
+
+	// estimate correspondences using the cos(theta) as the similarity parameter
 	pcl::registration::CorrespondenceEstimationBackProjection<PointXYZRGBNormal, PointXYZRGBNormal, PointXYZRGBNormal> est;
 	est.setInputSource (src);
 	est.setInputTarget (tgt);
@@ -164,6 +174,7 @@ void Registration::findCorrespondences (const PCNormalPtr &src,
 	est.setTargetNormals (tgt); //Used on BackProjectrion
 	est.setKSearch (10); //Also try with 30
 
+	// Reciprocal determines if the correspondence chosen is reciprocal.
 	if (reciprocal)
 		est.determineReciprocalCorrespondences (all_correspondences);
 	else
@@ -180,6 +191,7 @@ void Registration::findTransformation (const PCNormalPtr &src,
 		const CorrespondencesPtr &correspondences,
 		Eigen::Matrix4d &transform)
 {
+	// SVD transformation estimation consult "Linear Least-Squares Optimization for Point-to-Plane ICP Surface Registration"
 	pcl::registration::TransformationEstimationPointToPlaneLLS<PointXYZRGBNormal, PointXYZRGBNormal, double> trans_est;
 	trans_est.estimateRigidTransformation (*src, *tgt, *correspondences, transform);
 }
@@ -237,9 +249,12 @@ void Registration::estimateNormals(const PCXYZRGBPtr& cloud_in
 		, bool _downsample
 		, float _leaf_size){
 
+
 	pcl::PointCloud<Normal>::Ptr cloud_normals (new pcl::PointCloud<Normal>);
 	PCNormalPtr cloud_normals_pf (new PCNormal);
 
+	//Normal estimation consult "Adaptive Neighborhood Selection for Real-Time Surface
+	//NormalEstimation from Organized Point Cloud Data Using Integral Images"
 	pcl::IntegralImageNormalEstimation<pcl::PointXYZRGB, pcl::Normal> ne;
 	ne.setNormalEstimationMethod (ne.AVERAGE_3D_GRADIENT);
 	ne.setMaxDepthChangeFactor(0.01f);
@@ -249,6 +264,7 @@ void Registration::estimateNormals(const PCXYZRGBPtr& cloud_in
 	ne.compute(*cloud_normals);
 	pcl::concatenateFields (*cloud_in, *cloud_normals, *cloud_normals_pf);
 
+	//Downsample images to increase processing speed
 	if (_downsample)
 		Modelization::planeDetection::voxel_filter(cloud_normals_pf,_leaf_size,cloud_out);
 	else
@@ -264,7 +280,6 @@ void Registration::icp (const PCNormalPtr &src
 {
 	Eigen::Matrix4d final_transform (Eigen::Matrix4d::Identity ());
 	pcl::console::TicToc timer;
-	//	vis.reset(new pcl::visualization::PCLVisualizer("Registration example"));
 	CorrespondencesPtr all_correspondences (new Correspondences),
 			good_correspondences (new Correspondences);
 	PCNormalPtr output (new PCNormal);
@@ -272,6 +287,7 @@ void Registration::icp (const PCNormalPtr &src
 	*output = *src;
 
 	int iterations = 0;
+	// Convergence criteria class stops the loop
 	pcl::registration::DefaultConvergenceCriteria<double> converged (iterations, transform, *good_correspondences);
 
 	// ICP loop
