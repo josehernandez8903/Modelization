@@ -40,7 +40,10 @@ void Registration::runLoop(const PCXYZRGBPtr &_in){
 
 	// Estimate surface normals
 	estimateNormals(_in,*src,true,0.01);
+
 	pcl::removeNaNFromPointCloud(*src,*src,temp);
+
+
 
 	//if first cloud just copy to the output
 	if(previousCloud.get()==0){
@@ -263,11 +266,31 @@ void Registration::estimateNormals(const PCXYZRGBPtr& cloud_in
 	ne.compute(*cloud_normals);
 	pcl::concatenateFields (*cloud_in, *cloud_normals, *cloud_normals_pf);
 
+//	pcl::visualization::PCLVisualizer viewer("PCL Viewer");
+//	pcl::visualization::PointCloudColorHandlerRGBField<PointXYZRGB> handler_cloud(cloud_in);
+//	viewer.addPointCloud<PointXYZRGB>(cloud_in,handler_cloud,"cloud");
+//	viewer.addPointCloudNormals<pcl::PointXYZRGB,pcl::Normal>(cloud_in, cloud_normals,100,0.05f,"Normalss");
+//
+//	while(!viewer.wasStopped())
+//	viewer.spinOnce();
+
 	//Downsample images to increase processing speed
 	if (_downsample)
 		Modelization::planeDetection::voxel_filter(cloud_normals_pf,_leaf_size,cloud_out);
 	else
 		cloud_out=*cloud_normals_pf;
+
+//		pcl::visualization::PCLVisualizer viewer("PCL Viewer");
+//		int v1,v2;
+//		pcl::visualization::PointCloudColorHandlerRGBField<PointXYZRGB> handler_cloud(cloud_in);
+//		pcl::visualization::PointCloudColorHandlerRGBField<PointXYZRGBNormal> handler_cloud2(cloud_out.makeShared());
+//		viewer.createViewPort(0,0,0.5,1,v1);
+//		viewer.createViewPort(0.5,0,1,1,v2);
+//		viewer.addPointCloud<PointXYZRGB>(cloud_in,handler_cloud,"cloud",v1);
+//		viewer.addPointCloud<PointXYZRGBNormal>(cloud_out.makeShared(),handler_cloud2,"cloud2",v2);
+//		while(!viewer.wasStopped())
+//		viewer.spinOnce();
+
 }
 
 /************************************************************************************/

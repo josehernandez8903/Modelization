@@ -7,7 +7,7 @@
 
 #define INIT 1      //Initial Image
 #define ITER 1		//Increment
-#define MAX 30		//Max image
+#define MAX 2		//Max image
 
 int
 main (int argc, char** argv)
