@@ -5,8 +5,8 @@
 #include "../include/Registration.hpp"
 
 #define INIT 1
-#define ITER 3
-#define MAX 4
+#define ITER 7
+#define MAX 10
 
 int
 main (int argc, char** argv)

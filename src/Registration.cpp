@@ -48,6 +48,7 @@ void Registration::runLoop(const PCXYZRGBPtr &_in
 	}
 
 	transformPointCloud (*_in, *output, previousTransform.cast<float> ());
+//	*output = *_in;
 	cout<<"Matrix transform"<<endl<< previousTransform<<endl;
 
 	PCXYZRGBPtr tempCloud = fullCloud->makeShared();
@@ -58,12 +59,12 @@ void Registration::runLoop(const PCXYZRGBPtr &_in
 	cout << "Number of points post-filter = "<<fullCloud->size()<<endl;
 	cloud_r=*fullCloud;
 
-	//	pcl::visualization::CloudViewer viewer("Example");
-	//	viewer.showCloud(fullCloud);
-	//	while(!viewer.wasStopped())
-	//	{
-	//
-	//	}
+//		pcl::visualization::CloudViewer viewer("Example");
+//		viewer.showCloud(fullCloud);
+//		while(!viewer.wasStopped())
+//		{
+//
+//		}
 }
 
 void Registration::run(const PCXYZRGBPtr &_src
@@ -548,9 +549,9 @@ pcl::visualization::PointCloudColorHandlerRGBField<PointXYZRGBNormal> color_hand
 viscorr.addPointCloud(cloud_src,color_handler1, "src_points");
 viscorr.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_OPACITY,0.2,"src_points");
 
-pcl::visualization::PointCloudColorHandlerCustom<PointXYZRGBNormal> kpoint_color_handler (keypoints_src, 0, 255, 0);
-viscorr.addPointCloud<PointXYZRGBNormal>(keypoints_src, kpoint_color_handler, "keypoints1");
-viscorr.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 7, "keypoints1");
+//pcl::visualization::PointCloudColorHandlerCustom<PointXYZRGBNormal> kpoint_color_handler (keypoints_src, 0, 255, 0);
+//viscorr.addPointCloud<PointXYZRGBNormal>(keypoints_src, kpoint_color_handler, "keypoints1");
+//viscorr.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 7, "keypoints1");
 
 Eigen::Matrix4f t;
 t<<1,0,0,1,
@@ -569,11 +570,11 @@ pcl::visualization::PointCloudColorHandlerRGBField<PointXYZRGBNormal> color_hand
 viscorr.addPointCloud(cloudview,color_handler2, "tgt_points");
 viscorr.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_OPACITY,0.2,"tgt_points");
 
-pcl::visualization::PointCloudColorHandlerCustom<PointXYZRGBNormal> kpoint_color_handler2 (keypointsView, 0, 255, 0);
-viscorr.addPointCloud<PointXYZRGBNormal>(keypointsView, kpoint_color_handler2, "keypoints2");
-viscorr.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 7, "keypoints2");
+//pcl::visualization::PointCloudColorHandlerCustom<PointXYZRGBNormal> kpoint_color_handler2 (keypointsView, 0, 255, 0);
+//viscorr.addPointCloud<PointXYZRGBNormal>(keypointsView, kpoint_color_handler2, "keypoints2");
+//viscorr.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 7, "keypoints2");
 
-viscorr.addCorrespondences<PointXYZRGBNormal>(keypoints_src,keypointsView,*corr,"Correspondences");
+viscorr.addCorrespondences<PointXYZRGBNormal>(keypoints_src,keypointsView,*corr,50,"Correspondences");
 viscorr.setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_LINE_WIDTH, 2, "Correspondences");
 viscorr.resetCamera ();
 viscorr.spin ();
