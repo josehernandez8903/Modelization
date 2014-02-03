@@ -11,8 +11,9 @@ namespace Modelization {
 /************************************************************************************/
 /* Default constructor */
 /************************************************************************************/
-Registration::Registration(bool _rejection, bool _reciprocal):
-	rejection(_rejection), reciprocal(_reciprocal), viewframes(0), identityMatrix(Eigen::Matrix4d::Identity())
+Registration::Registration(bool _rejection, bool _reciprocal, int Threshold):
+					rejection(_rejection), reciprocal(_reciprocal), viewframes(0),
+					minThreshold(Threshold), identityMatrix(Eigen::Matrix4d::Identity())
 {
 
 }
@@ -29,11 +30,6 @@ Registration::~Registration() {
 /************************************************************************************/
 void Registration::runLoop(const PCXYZRGBPtr &_in){
 
-	// console vervosity for ICP functions
-#ifdef _DEBUG
-	setVerbosityLevel (pcl::console::L_ALWAYS);
-#endif
-
 	transformPtr transform(new Eigen::Matrix4d);		//ICP resultant transformation Matrix
 	PCNormalPtr src(new PCNormal);						//Input cloud containing surface normals
 	std::vector<int> temp;
@@ -49,7 +45,7 @@ void Registration::runLoop(const PCXYZRGBPtr &_in){
 	if(previousCloud.get()==0){
 		previousCloud.swap(src);
 		*transform = identityMatrix;
-//		cerr<<"Setting up"<<endl;
+		//		cerr<<"Setting up"<<endl;
 	}
 
 	// if not run the registration function to determine the transformation matrix
@@ -66,21 +62,21 @@ void Registration::runLoop(const PCXYZRGBPtr &_in){
 	//cout<<"Matrix transform"<<endl<< previousTransform<<endl;
 
 
-//	PCXYZRGBPtr tempCloud = fullCloud->makeShared();
-//
-//	cout << "Number of points before merging = "<<tempCloud->size()<<endl;
-//	*tempCloud+=*output;
-//	cout << "Number of points pre-filter = "<<tempCloud->size()<<endl;
-//	Modelization::planeDetection::voxel_filter(tempCloud,0.005,*fullCloud);
-//	cout << "Number of points post-filter = "<<fullCloud->size()<<endl;
-//	cloud_r=*fullCloud;
+	//	PCXYZRGBPtr tempCloud = fullCloud->makeShared();
+	//
+	//	cout << "Number of points before merging = "<<tempCloud->size()<<endl;
+	//	*tempCloud+=*output;
+	//	cout << "Number of points pre-filter = "<<tempCloud->size()<<endl;
+	//	Modelization::planeDetection::voxel_filter(tempCloud,0.005,*fullCloud);
+	//	cout << "Number of points post-filter = "<<fullCloud->size()<<endl;
+	//	cloud_r=*fullCloud;
 
-//		pcl::visualization::CloudViewer viewer("Example");
-//		viewer.showCloud(cloud_r.makeShared());
-//		while(!viewer.wasStopped())
-//		{
-//
-//		}
+	//		pcl::visualization::CloudViewer viewer("Example");
+	//		viewer.showCloud(cloud_r.makeShared());
+	//		while(!viewer.wasStopped())
+	//		{
+	//
+	//		}
 }
 
 /************************************************************************************/
@@ -140,20 +136,20 @@ void Registration::rejectBadCorrespondences (const CorrespondencesPtr &all_corre
 
 	return;
 
-//	CorrespondencesPtr remaining_correspondences_temp (new Correspondences);
-//	rej.getCorrespondences (*remaining_correspondences_temp);
-//	//PCL_DEBUG ("[rejectBadCorrespondences] Number of correspondences remaining after rejection: %d\n", remaining_correspondences_temp->size ());
-//
-//	// Reject if the angle between the normals is really off
-//	pcl::registration::CorrespondenceRejectorSurfaceNormal rej_normals;
-//	rej_normals.setThreshold (acos (pcl::deg2rad (45.0)));
-//	rej_normals.initializeDataContainer<PointXYZRGBNormal, PointXYZRGBNormal> ();
-//	rej_normals.setInputCloud<PointXYZRGBNormal> (src);
-//	rej_normals.setInputNormals<PointXYZRGBNormal, PointXYZRGBNormal> (src);
-//	rej_normals.setInputTarget<PointXYZRGBNormal> (tgt);
-//	rej_normals.setTargetNormals<PointXYZRGBNormal, PointXYZRGBNormal> (tgt);
-//	rej_normals.setInputCorrespondences (remaining_correspondences_temp);
-//	rej_normals.getCorrespondences (remaining_correspondences);
+	//	CorrespondencesPtr remaining_correspondences_temp (new Correspondences);
+	//	rej.getCorrespondences (*remaining_correspondences_temp);
+	//	//PCL_DEBUG ("[rejectBadCorrespondences] Number of correspondences remaining after rejection: %d\n", remaining_correspondences_temp->size ());
+	//
+	//	// Reject if the angle between the normals is really off
+	//	pcl::registration::CorrespondenceRejectorSurfaceNormal rej_normals;
+	//	rej_normals.setThreshold (acos (pcl::deg2rad (45.0)));
+	//	rej_normals.initializeDataContainer<PointXYZRGBNormal, PointXYZRGBNormal> ();
+	//	rej_normals.setInputCloud<PointXYZRGBNormal> (src);
+	//	rej_normals.setInputNormals<PointXYZRGBNormal, PointXYZRGBNormal> (src);
+	//	rej_normals.setInputTarget<PointXYZRGBNormal> (tgt);
+	//	rej_normals.setTargetNormals<PointXYZRGBNormal, PointXYZRGBNormal> (tgt);
+	//	rej_normals.setInputCorrespondences (remaining_correspondences_temp);
+	//	rej_normals.getCorrespondences (remaining_correspondences);
 }
 
 /************************************************************************************/
@@ -218,7 +214,7 @@ void Registration::view (const PCNormal::ConstPtr &src, const PCNormal::ConstPtr
 	{
 		vis->addCorrespondences<PointXYZRGBNormal> (src, tgt, *correspondences, 1, "correspondences");
 		vis->setShapeRenderingProperties (pcl::visualization::PCL_VISUALIZER_LINE_WIDTH, 1, "correspondences");
-	//vis->setShapeRenderingProperties (PCL_VISUALIZER_COLOR, 1.0, 0.0, 0.0, "correspondences");
+		//vis->setShapeRenderingProperties (PCL_VISUALIZER_COLOR, 1.0, 0.0, 0.0, "correspondences");
 	}
 	vis->spin();
 }
@@ -266,13 +262,13 @@ void Registration::estimateNormals(const PCXYZRGBPtr& cloud_in
 	ne.compute(*cloud_normals);
 	pcl::concatenateFields (*cloud_in, *cloud_normals, *cloud_normals_pf);
 
-//	pcl::visualization::PCLVisualizer viewer("PCL Viewer");
-//	pcl::visualization::PointCloudColorHandlerRGBField<PointXYZRGB> handler_cloud(cloud_in);
-//	viewer.addPointCloud<PointXYZRGB>(cloud_in,handler_cloud,"cloud");
-//	viewer.addPointCloudNormals<pcl::PointXYZRGB,pcl::Normal>(cloud_in, cloud_normals,100,0.05f,"Normalss");
-//
-//	while(!viewer.wasStopped())
-//	viewer.spinOnce();
+	//	pcl::visualization::PCLVisualizer viewer("PCL Viewer");
+	//	pcl::visualization::PointCloudColorHandlerRGBField<PointXYZRGB> handler_cloud(cloud_in);
+	//	viewer.addPointCloud<PointXYZRGB>(cloud_in,handler_cloud,"cloud");
+	//	viewer.addPointCloudNormals<pcl::PointXYZRGB,pcl::Normal>(cloud_in, cloud_normals,100,0.05f,"Normalss");
+	//
+	//	while(!viewer.wasStopped())
+	//	viewer.spinOnce();
 
 	//Downsample images to increase processing speed
 	if (_downsample)
@@ -280,16 +276,16 @@ void Registration::estimateNormals(const PCXYZRGBPtr& cloud_in
 	else
 		cloud_out=*cloud_normals_pf;
 
-//		pcl::visualization::PCLVisualizer viewer("PCL Viewer");
-//		int v1,v2;
-//		pcl::visualization::PointCloudColorHandlerRGBField<PointXYZRGB> handler_cloud(cloud_in);
-//		pcl::visualization::PointCloudColorHandlerRGBField<PointXYZRGBNormal> handler_cloud2(cloud_out.makeShared());
-//		viewer.createViewPort(0,0,0.5,1,v1);
-//		viewer.createViewPort(0.5,0,1,1,v2);
-//		viewer.addPointCloud<PointXYZRGB>(cloud_in,handler_cloud,"cloud",v1);
-//		viewer.addPointCloud<PointXYZRGBNormal>(cloud_out.makeShared(),handler_cloud2,"cloud2",v2);
-//		while(!viewer.wasStopped())
-//		viewer.spinOnce();
+	//		pcl::visualization::PCLVisualizer viewer("PCL Viewer");
+	//		int v1,v2;
+	//		pcl::visualization::PointCloudColorHandlerRGBField<PointXYZRGB> handler_cloud(cloud_in);
+	//		pcl::visualization::PointCloudColorHandlerRGBField<PointXYZRGBNormal> handler_cloud2(cloud_out.makeShared());
+	//		viewer.createViewPort(0,0,0.5,1,v1);
+	//		viewer.createViewPort(0.5,0,1,1,v2);
+	//		viewer.addPointCloud<PointXYZRGB>(cloud_in,handler_cloud,"cloud",v1);
+	//		viewer.addPointCloud<PointXYZRGBNormal>(cloud_out.makeShared(),handler_cloud2,"cloud2",v2);
+	//		while(!viewer.wasStopped())
+	//		viewer.spinOnce();
 
 }
 
@@ -323,7 +319,7 @@ void Registration::icp (const PCNormalPtr &src
 		//		Visualize first iteration all correspondances
 		//		if(iterations==0)
 		//			visualizeCorrespondances(output,tgt,output,tgt,all_correspondences);
-		PCL_DEBUG ("Number of correspondences found: %d\n", all_correspondences->size ());
+//		PCL_DEBUG ("Number of correspondences found: %d\n", all_correspondences->size ());
 
 		if (rejection)
 		{
@@ -331,7 +327,7 @@ void Registration::icp (const PCNormalPtr &src
 			timer.tic();
 			rejectBadCorrespondences (all_correspondences, output, tgt, *good_correspondences);
 			//cout<<"Reject Correspondances "<<": "<<timer.toc()<<" Miliseconds"<<endl;
-			PCL_DEBUG ("Number of correspondences remaining after rejection: %d\n", good_correspondences->size ());
+//			PCL_DEBUG ("Number of correspondences remaining after rejection: %d\n", good_correspondences->size ());
 		}
 		else
 			timer.tic();
@@ -356,7 +352,7 @@ void Registration::icp (const PCNormalPtr &src
 
 	}
 	while (!converged);
-//	cout<<"Converged "<<converged<<endl;
+	//	cout<<"Converged "<<converged<<endl;
 	//	view (src, tgt, good_correspondences);
 	//	view (output, tgt, good_correspondences);
 	transform = final_transform;
@@ -430,11 +426,33 @@ void Registration::visualizeCorrespondances(const PCNormalPtr &cloud_src
 /************************************************************************************/
 /************************************************************************************/
 /************************************************************************************/
-void Registration::checkforKeyframe(const PCXYZRGBPtr &fullCloud
-			, const PCNormalPtr &cloud
-			, transformPtr &transform){
+bool Registration::verifyCorrespondences(const PCNormalPtr &src
+		, const PCNormalPtr &tgt)
+{
+	CorrespondencesPtr all_correspondences (new Correspondences),
+			good_correspondences (new Correspondences);
+	findCorrespondences (src, tgt, *all_correspondences);
+	if (rejection)
+	{
+		// Reject correspondences
+		rejectBadCorrespondences (all_correspondences, src, tgt, *good_correspondences);
+	}
+	else
+		*good_correspondences = *all_correspondences;
+	printf ("Number of correspondences from verify: %d\n", good_correspondences->size ());
+	if(good_correspondences->size()<=minThreshold)
+		return true;
+	return false;
+}
 
-//	cout <<"inside function "<<endl<<*(transform)<<endl;
+/************************************************************************************/
+/************************************************************************************/
+/************************************************************************************/
+void Registration::checkforKeyframe(const PCXYZRGBPtr &fullCloud
+		, const PCNormalPtr &cloud
+		, transformPtr &transform){
+
+	// cout <<"inside function "<<endl<<*(transform)<<endl;
 	// check for the very first frame and set it as key frame
 	if(Keyframes.size()==0){
 		Keyframes.push_back(cloud);
@@ -442,22 +460,23 @@ void Registration::checkforKeyframe(const PCXYZRGBPtr &fullCloud
 		KeyframeFull.push_back(fullCloud);
 		accTransform.reset(new Eigen::Matrix4d);
 		*accTransform = identityMatrix;
-		cout<<"First key frame"<<endl;
+		//		cout<<"First key frame"<<endl;
 	}
 	else{
 		//Add the recent transformation matrix to the last matrices since the last key frame
 		*accTransform = *accTransform**transform;
 		//Check for a new keyframe
-		if(true){ //todo:function to check threshold;
+		cout<<"Keyframe number : "<<Keyframes.size()<<endl;
+		if(verifyCorrespondences(Keyframes[Keyframes.size() - 1],cloud)){ //todo:function to check threshold;
 			//if so add it and reset the transform matrix
 			Keyframes.push_back(cloud);
 			KeyTransform.push_back(accTransform);
 			KeyframeFull.push_back(fullCloud);
 			accTransform.reset(new Eigen::Matrix4d);
 			*accTransform = identityMatrix;
-		cout<<"Key frame no: "<<Keyframes.size()<<endl;
+			cout<<"Key frame no: "<<Keyframes.size()<<endl;
 		}
-		cout<<"Stored transform"<<endl<<*(KeyTransform[KeyTransform.size()-1])<<endl;
+		//		cout<<"Stored transform"<<endl<<*(KeyTransform[KeyTransform.size()-1])<<endl;
 	}
 
 }
@@ -478,22 +497,23 @@ bool Registration::getView(PCXYZRGB &result)
 	std::size_t i;
 	for(i=0;i<viewframes;i++)
 	{
-		cout <<"inside function: transfer no: "<<i<<endl<<*(KeyTransform[0])<<endl<<endl;
+		//		cout <<"inside function: transfer no: "<<i<<endl<<*(KeyTransform[0])<<endl<<endl;
 		transform*=*(KeyTransform[i]);
 	}
-		cout<<"inside function total transform previous"<<transform<<endl;
+	//		cout<<"inside function total transform previous"<<transform<<endl;
 	//run for the newly acquired keyframes since last function call
 	for(;viewframes<Keyframes.size();viewframes++){
-		cout<<viewframes<<"  Actual Transform"<<endl<<*(KeyTransform[KeyTransform.size()-1])<<endl;
+		//		cout<<viewframes<<"  Actual Transform"<<endl<<*(KeyTransform[KeyTransform.size()-1])<<endl;
 		PCXYZRGBPtr temp(new PCXYZRGB);
 		PCXYZRGBPtr temp2(new PCXYZRGB);
 		transform*=*(KeyTransform[viewframes]);
-		cout<<"Applied Transform"<<endl<<transform<<endl;
+		//		cout<<"Applied Transform"<<endl<<transform<<endl;
 		transformPointCloud (*(KeyframeFull[viewframes]), *temp, transform.cast<float> ());
 		Modelization::planeDetection::voxel_filter(temp,0.005,*temp2);
 		*fullCloud+=*temp2;
 	}
 	Modelization::planeDetection::voxel_filter(fullCloud,0.01,result);
+	cout<<"Number of keyframes : "<<Keyframes.size()<<endl;
 	return true;
 }
 

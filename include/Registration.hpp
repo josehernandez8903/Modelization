@@ -55,9 +55,10 @@ public:
 	 *\brief Registration Main constructor.
 	 *\param[in] _rejection Enable the bad correspondance rejections for the transformation estimation
 	 *\param[in] _reciprocal if true all correspondances must
+	 *\param[in] _Threshold Minimum number of correspondences to determine a valid keyframe
 	 * be reciprocal in order to be considered as a valid correspondance
 	 */
-	Registration(bool _rejection = true, bool _reciprocal = true);
+	Registration(bool _rejection = true, bool _reciprocal = true, int _Threshold = 1000);
 
 	/*
 	 *\brief Default empty destructor
@@ -146,12 +147,18 @@ private:
 			, const PCNormalPtr &Cloud
 			, transformPtr &transform);
 
+	/*
+	 * \brief verifies the initial number of correspondences between two frames
+	 * \return true if the number of correspondences exceeds a threshold
+	 */
+	bool verifyCorrespondences(const PCNormalPtr &source
+			, const PCNormalPtr &target);
 
 	/*
 	 * \brief keypoint visualization function.
 	 */
 	void visualizeKeypoints(const PCNormalPtr &cloud
-				, const PCNormalPtr &kpoint);
+			, const PCNormalPtr &kpoint);
 
 	/*
 	 * \brief correspondance visualization with keypoints.
@@ -166,6 +173,7 @@ private:
 	bool rejection;
 	bool reciprocal;
 	std::size_t viewframes;
+	std::size_t minThreshold;
 	boost::shared_ptr<pcl::visualization::PCLVisualizer> vis;
 
 	std::vector<PCNormalPtr> Keyframes;    				//Set of Clouds Representing the full environment

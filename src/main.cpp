@@ -6,8 +6,8 @@
 #include "../include/Registration.hpp"
 
 #define INIT 1      //Initial Image
-#define ITER 1		//Increment
-#define MAX 2		//Max image
+#define ITER 2		//Increment
+#define MAX 52		//Max image
 
 int
 main (int argc, char** argv)
@@ -53,8 +53,13 @@ main (int argc, char** argv)
 	std::cout<<"Finished Loading Files"<<std::endl;
 	pcl::console::TicToc timer;
 
+	// console vervosity for ICP functions
+#ifdef _DEBUG
+	setVerbosityLevel (pcl::console::L_ALWAYS);
+#endif
+
 	// Main Registration Loop
-	Modelization::Registration registrator(true,true);
+	Modelization::Registration registrator(true,true,2000);
 	i=0;
 	while(files.size()>i)
 	{
@@ -64,8 +69,10 @@ main (int argc, char** argv)
 		cout<<"registration "<<i<<": "<<timer.toc()<<" Miliseconds"<<endl;
 
 	}
+	cout<<"Get View"<<endl;
+	timer.tic();
 	registrator.getView(*cloud_result);
-
+	cout<<"Get View took :  "<<timer.toc()<<" Miliseconds"<<endl;
 //	pcl::visualization::CloudViewer viewer2("Before");
 //	viewer2.showCloud(cloud_initial,"Initial Cloud");
 //	viewer2.showCloud(cloud_initial,"Initial Cloud");
