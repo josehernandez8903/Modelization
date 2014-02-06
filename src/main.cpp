@@ -7,7 +7,7 @@
 
 #define INIT 1      //Initial Image
 #define ITER 2		//Increment
-#define MAX 52		//Max image
+#define MAX  52		//Max image
 
 int
 main (int argc, char** argv)
@@ -59,20 +59,49 @@ main (int argc, char** argv)
 #endif
 
 	// Main Registration Loop
-	Modelization::Registration registrator(true,true,2000);
+	pcl::visualization::PCLVisualizer viewer("Result Viewer");
+	pcl::visualization::Camera cam;
+	cam.clip[0]=2.7175;
+	cam.clip[1] = 5.70627;
+	cam.focal[0] = 0.0657875;
+	cam.focal[1] = 0.101832;
+	cam.focal[2] = 0.910947;
+	cam.pos[0] = -0.396767;
+	cam.pos[1] = -0.571929;
+	cam.pos[2] = -3.04181;
+	cam.view[0] = 0.28833;
+	cam.view[1] = -0.948936;
+	cam.view[2] = 0.128009;
+	cam.fovy = 0.523599;
+	cam.window_size[0] = 840;
+	cam.window_size[1] = 525;
+	cam.window_pos[0] = 1;
+	cam.window_pos[1] = 52;
+	viewer.setCameraParameters(cam);
+	Modelization::Registration registrator(true,true,0.01,2000);
 	i=0;
 	while(files.size()>i)
 	{
 		timer.tic();
-		cout<<"Image "<<i<<endl;
-		registrator.runLoop(files[i++]);
-		cout<<"registration "<<i<<": "<<timer.toc()<<" Miliseconds"<<endl;
+		if(registrator.addCloud(files[i])){
+			i++;
+			cout<<"Image "<<i<<endl;
+			cout<< "advance"<<endl;
+		}
+		if(registrator.getResult(cloud_result)){
+			cout<<"Refreshing View"<<endl;
+			if(!viewer.updatePointCloud(cloud_result,"Resultant Cloud")){
+				viewer.addPointCloud(cloud_result,"Resultant Cloud");
+			}
+		}
+		viewer.spinOnce(100);
+
+//		cout<<"registration "<<i<<": "<<timer.toc()<<" Miliseconds"<<endl;
 
 	}
-	cout<<"Get View"<<endl;
-	timer.tic();
-	registrator.getView(*cloud_result);
-	cout<<"Get View took :  "<<timer.toc()<<" Miliseconds"<<endl;
+
+	viewer.spin();
+
 //	pcl::visualization::CloudViewer viewer2("Before");
 //	viewer2.showCloud(cloud_initial,"Initial Cloud");
 //	viewer2.showCloud(cloud_initial,"Initial Cloud");
@@ -81,11 +110,7 @@ main (int argc, char** argv)
 //	}
 
 	// Display the resulting cloud
-	pcl::visualization::CloudViewer viewer("Cloud Viewer");
-	viewer.showCloud(cloud_result,"resultant Cloud");
-	while (!viewer.wasStopped ())
-	{
-	}
+
 
 //		pcl::visualization::PointCloudColorHandlerRGBField<PointXYZRGBNormal> color_handler (cloud_in);
 //		pcl::visualization::PCLVisualizer viewer("Downsampled");

@@ -11,9 +11,11 @@ namespace Modelization {
 /************************************************************************************/
 /* Default constructor */
 /************************************************************************************/
-Registration::Registration(bool _rejection, bool _reciprocal, int Threshold):
+Registration::Registration(bool _rejection, bool _reciprocal, float _VfiltSize ,int Threshold):
 					rejection(_rejection), reciprocal(_reciprocal), viewframes(0),
-					minThreshold(Threshold), identityMatrix(Eigen::Matrix4d::Identity())
+					vFiltSize(_VfiltSize), minThreshold(Threshold), Resultcloud(new PCXYZRGB),
+					identityMatrix(Eigen::Matrix4d::Identity()), isRunning(false), gettingView(false),
+					viewReady(false)
 {
 
 }
@@ -22,7 +24,46 @@ Registration::Registration(bool _rejection, bool _reciprocal, int Threshold):
 /* Default Destructor */
 /************************************************************************************/
 Registration::~Registration() {
+	if(isRunning)
+		LoopThread.join();
 
+}
+
+/************************************************************************************/
+/* Thread Running */
+/************************************************************************************/
+bool Registration::addCloud(const PCXYZRGBPtr &_in){
+	if(!isRunning){
+		isRunning = true;
+		LoopThread = boost::thread(&Registration::runLoop,this,_in);
+		return true;
+	}
+
+	else{
+//		cout<<"StillRunning";
+		return false;
+	}
+}
+
+bool Registration::getResult(PCXYZRGBPtr &_out){
+	bool retval = false;
+	if(viewReady){
+		cout<<"ViewReady"<<endl;
+		_out.swap(Resultcloud);
+		Resultcloud.reset(new PCXYZRGB);
+		retval = true;
+		viewReady = false;
+
+	}
+	if(!gettingView){
+//		cout<<"test"<<endl;
+		gettingView = true;
+		LoopThread = boost::thread(&Registration::getView,this,Resultcloud);
+	}
+	else{
+//		cout<<"Still getting View"<<endl;
+	}
+	return retval;
 }
 
 /************************************************************************************/
@@ -30,16 +71,15 @@ Registration::~Registration() {
 /************************************************************************************/
 void Registration::runLoop(const PCXYZRGBPtr &_in){
 
+	isRunning = true;
 	transformPtr transform(new Eigen::Matrix4d);		//ICP resultant transformation Matrix
 	PCNormalPtr src(new PCNormal);						//Input cloud containing surface normals
 	std::vector<int> temp;
 
 	// Estimate surface normals
-	estimateNormals(_in,*src,true,0.01);
+	estimateNormals(_in,*src,true,vFiltSize);
 
 	pcl::removeNaNFromPointCloud(*src,*src,temp);
-
-
 
 	//if first cloud just copy to the output
 	if(previousCloud.get()==0){
@@ -77,6 +117,7 @@ void Registration::runLoop(const PCXYZRGBPtr &_in){
 	//		{
 	//
 	//		}
+	isRunning = false;
 }
 
 /************************************************************************************/
@@ -439,7 +480,7 @@ bool Registration::verifyCorrespondences(const PCNormalPtr &src
 	}
 	else
 		*good_correspondences = *all_correspondences;
-	printf ("Number of correspondences from verify: %d\n", good_correspondences->size ());
+	printf ("Number of correspondences from verify: %ld\n", good_correspondences->size ());
 	if(good_correspondences->size()<=minThreshold)
 		return true;
 	return false;
@@ -484,14 +525,18 @@ void Registration::checkforKeyframe(const PCXYZRGBPtr &fullCloud
 /************************************************************************************/
 /************************************************************************************/
 /************************************************************************************/
-bool Registration::getView(PCXYZRGB &result)
+void Registration::getView(PCXYZRGBPtr &result)
 {
 	//If first call to the function, initialize the fullcloud image.
-	if(viewframes==0 && Keyframes.size()>0)
+	gettingView = true;
+	size_t size = Keyframes.size();
+	if(viewframes==0 && size>0)
 		fullCloud.reset(new PCXYZRGB);
 
-	if(viewframes == Keyframes.size())
-		return false;
+	if(viewframes == size){
+		gettingView = false;
+		return;
+	}
 
 	Eigen::Matrix4d transform = Eigen::Matrix4d::Identity();
 	std::size_t i;
@@ -502,7 +547,7 @@ bool Registration::getView(PCXYZRGB &result)
 	}
 	//		cout<<"inside function total transform previous"<<transform<<endl;
 	//run for the newly acquired keyframes since last function call
-	for(;viewframes<Keyframes.size();viewframes++){
+	for(;viewframes<size;viewframes++){
 		//		cout<<viewframes<<"  Actual Transform"<<endl<<*(KeyTransform[KeyTransform.size()-1])<<endl;
 		PCXYZRGBPtr temp(new PCXYZRGB);
 		PCXYZRGBPtr temp2(new PCXYZRGB);
@@ -512,9 +557,10 @@ bool Registration::getView(PCXYZRGB &result)
 		Modelization::planeDetection::voxel_filter(temp,0.005,*temp2);
 		*fullCloud+=*temp2;
 	}
-	Modelization::planeDetection::voxel_filter(fullCloud,0.01,result);
-	cout<<"Number of keyframes : "<<Keyframes.size()<<endl;
-	return true;
+	Modelization::planeDetection::voxel_filter(fullCloud,0.01,*result);
+	cout<<"Number of keyframes : "<<size<<endl;
+	viewReady = true;
+	gettingView = false;
 }
 
 } /* namespace Modelization */

@@ -58,12 +58,25 @@ public:
 	 *\param[in] _Threshold Minimum number of correspondences to determine a valid keyframe
 	 * be reciprocal in order to be considered as a valid correspondance
 	 */
-	Registration(bool _rejection = true, bool _reciprocal = true, int _Threshold = 1000);
+	Registration(bool _rejection = true, bool _reciprocal = true, float VfiltSize=0.01,  int _Threshold = 1000);
 
 	/*
 	 *\brief Default empty destructor
 	 */
 	virtual ~Registration();
+
+	/*
+	 * \brief Main Loop registration function Multithreaded
+	 * \warn the image must not be changed.
+	 * \param[in] _in the input cloud to be added to the registration
+	 */
+	bool addCloud(const PCXYZRGBPtr &_in);
+
+	/*
+		 * \brief Get View Multithreaded
+		 * \param[out] _in the resultant cloud
+		 */
+	bool getResult(PCXYZRGBPtr &_out);
 
 	/*
 	 * \brief Main Loop registration function
@@ -85,7 +98,7 @@ public:
 	 * \brief returns the registration result from images given by the \ref runLoop function
 	 * \param[out] result the complete registered cloud.
 	 */
-	bool getView(PCXYZRGB &result);
+	void getView(PCXYZRGBPtr &result);
 
 private:
 	/*
@@ -173,6 +186,7 @@ private:
 	bool rejection;
 	bool reciprocal;
 	std::size_t viewframes;
+	float vFiltSize;
 	std::size_t minThreshold;
 	boost::shared_ptr<pcl::visualization::PCLVisualizer> vis;
 
@@ -183,9 +197,17 @@ private:
 
 	PCNormalPtr previousCloud;
 	PCXYZRGBPtr fullCloud;
+	PCXYZRGBPtr Resultcloud;
 
 	Eigen::Matrix4d previousTransform;
 	Eigen::Matrix4d identityMatrix;
+
+	boost::thread LoopThread;
+	boost::thread getViewThread;
+
+	bool isRunning;
+	bool gettingView;
+	bool viewReady;
 
 };
 

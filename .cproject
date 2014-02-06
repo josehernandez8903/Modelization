@@ -61,6 +61,7 @@
 									<listOptionValue builtIn="false" value="pcl_registration"/>
 									<listOptionValue builtIn="false" value="pcl_features"/>
 									<listOptionValue builtIn="false" value="pcl_keypoints"/>
+									<listOptionValue builtIn="false" value="boost_thread"/>
 								</option>
 								<option id="gnu.cpp.link.option.paths.1373510074" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="/usr/local/lib"/>
