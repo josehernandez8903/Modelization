@@ -32,10 +32,10 @@ Registration::~Registration() {
 /************************************************************************************/
 /* Thread Running */
 /************************************************************************************/
-bool Registration::addCloud(const PCXYZRGBPtr &_in){
+bool Registration::addCloud(const PCXYZRGBCPtr &_in){
 	if(!isRunning){
 		isRunning = true;
-		LoopThread = boost::thread(&Registration::runLoop,this,_in);
+		LoopThread = boost::thread(&Registration::runLoop,this,_in->makeShared());
 		return true;
 	}
 

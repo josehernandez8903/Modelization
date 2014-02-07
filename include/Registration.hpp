@@ -70,7 +70,7 @@ public:
 	 * \warn the image must not be changed.
 	 * \param[in] _in the input cloud to be added to the registration
 	 */
-	bool addCloud(const PCXYZRGBPtr &_in);
+	bool addCloud(const PCXYZRGBCPtr &_in);
 
 	/*
 		 * \brief Get View Multithreaded
