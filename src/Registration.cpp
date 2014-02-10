@@ -35,7 +35,7 @@ void Registration::runLoop(const PCXYZRGBPtr &_in){
 	std::vector<int> temp;
 
 	// Estimate surface normals
-	estimateNormals(_in,*src,true,0.01);
+	estimateNormals(_in,*src,true,0.05);
 
 	pcl::removeNaNFromPointCloud(*src,*src,temp);
 
@@ -352,6 +352,8 @@ void Registration::icp (const PCNormalPtr &src
 
 	}
 	while (!converged);
+
+	cout << "Converged at "<<iterations<<" iterations"<<endl;
 	//	cout<<"Converged "<<converged<<endl;
 	//	view (src, tgt, good_correspondences);
 	//	view (output, tgt, good_correspondences);
@@ -484,8 +486,12 @@ void Registration::checkforKeyframe(const PCXYZRGBPtr &fullCloud
 /************************************************************************************/
 /************************************************************************************/
 /************************************************************************************/
-bool Registration::getView(PCXYZRGB &result)
+bool Registration::getView(PCXYZRGB &result,bool doTransform,bool forceUpdate)
 {
+	if(forceUpdate){
+		viewframes = 0;
+	}
+
 	//If first call to the function, initialize the fullcloud image.
 	if(viewframes==0 && Keyframes.size()>0)
 		fullCloud.reset(new PCXYZRGB);
@@ -508,6 +514,9 @@ bool Registration::getView(PCXYZRGB &result)
 		PCXYZRGBPtr temp2(new PCXYZRGB);
 		transform*=*(KeyTransform[viewframes]);
 		//		cout<<"Applied Transform"<<endl<<transform<<endl;
+		if(!doTransform)
+			transform = Eigen::Matrix4d::Identity();
+
 		transformPointCloud (*(KeyframeFull[viewframes]), *temp, transform.cast<float> ());
 		Modelization::planeDetection::voxel_filter(temp,0.005,*temp2);
 		*fullCloud+=*temp2;
