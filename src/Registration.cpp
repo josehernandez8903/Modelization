@@ -26,6 +26,8 @@ Registration::Registration(bool _rejection, bool _reciprocal, float _VfiltSize ,
 Registration::~Registration() {
 	if(isRunning)
 		LoopThread.join();
+	if(gettingView)
+		getViewThread.join();
 
 }
 
@@ -393,6 +395,7 @@ void Registration::icp (const PCNormalPtr &src
 
 	}
 	while (!converged);
+	cout<< "Took "<<iterations<<" to converge"<<endl;
 	//	cout<<"Converged "<<converged<<endl;
 	//	view (src, tgt, good_correspondences);
 	//	view (output, tgt, good_correspondences);

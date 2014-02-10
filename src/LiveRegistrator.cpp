@@ -135,6 +135,7 @@ void LiveRegistrator::run ()
 	//When the window is closed stop the grabber and finish the function.
 	grabber_->stop ();
 	cloud_connection.disconnect ();
+	cout<<"The End"<<endl;
 }
 
 } /* namespace Modelization */
