@@ -22,7 +22,7 @@ main (int argc, char** argv)
 		std::cerr<<"Error: filename required"<<std::endl;
 		std::cerr<<"Initial cloud number, Last cloud Number and increment required"<<std::endl;
 		std::cerr<<"example: main Darwin_final_1_ 10 20 2"<<std::endl;
-		std::cerr<<"Every other cloud from Darwin_final_1_10.pcd to Darwin_final_1_20.pcd every other cloud"<<std::endl;
+		std::cerr<<"From Darwin_final_1_10.pcd to Darwin_final_1_20.pcd every other cloud"<<std::endl;
 		return 0;
 	}
 
@@ -84,34 +84,35 @@ main (int argc, char** argv)
 	cout<<"Get View"<<endl;
 	timer.tic();
 
-	registrator.getView(*cloud_result,false,false);
-	registrator.getView(*cloud_result2,true,true);
+	//Get views
+	registrator.getView(*cloud_result,false,false); //do not apply transformation
+	registrator.getView(*cloud_result2,true,true);	//Apply transformations quaternions and force update
 	cout<<"Get View took :  "<<timer.toc()<<" Miliseconds"<<endl;
-//	pcl::visualization::CloudViewer viewer2("Before");
-//	viewer2.showCloud(cloud_initial,"Initial Cloud");
-//	viewer2.showCloud(cloud_initial,"Initial Cloud");
-//	while (!viewer2.wasStopped ())
-//	{
-//	}
+	//	pcl::visualization::CloudViewer viewer2("Before");
+	//	viewer2.showCloud(cloud_initial,"Initial Cloud");
+	//	viewer2.showCloud(cloud_initial,"Initial Cloud");
+	//	while (!viewer2.wasStopped ())
+	//	{
+	//	}
 
 	// Display the resulting cloud
 
-//		pcl::visualization::PointCloudColorHandlerRGBField<PointXYZRGBNormal> color_handler (cloud_in);
-//		pcl::visualization::PCLVisualizer viewer("Downsampled");
-//		viewer.setBackgroundColor (0.0, 0.0, 0.0);
+	//		pcl::visualization::PointCloudColorHandlerRGBField<PointXYZRGBNormal> color_handler (cloud_in);
+	//		pcl::visualization::PCLVisualizer viewer("Downsampled");
+	//		viewer.setBackgroundColor (0.0, 0.0, 0.0);
 	pcl::visualization::PCLVisualizer viewer("Non Registered");
 	pcl::visualization::PCLVisualizer viewer2("Registered");
 
-		viewer.addPointCloud(cloud_result,"Input_cloud2");
-		viewer2.addPointCloud(cloud_result2,"Input_cloud");
-//		viewer.addPointCloudNormals<PointXYZRGBNormal,PointXYZRGBNormal>(cloud_in, cloud_in,20,0.05,"Input_Normals2");
+	viewer.addPointCloud(cloud_result,"Input_cloud2");
+	viewer2.addPointCloud(cloud_result2,"Input_cloud");
+	//		viewer.addPointCloudNormals<PointXYZRGBNormal,PointXYZRGBNormal>(cloud_in, cloud_in,20,0.05,"Input_Normals2");
 
-			viewer2.spin();
+	viewer2.spin();
 
-//	Modelization::planeDetection Modelizer;
-//	Modelizer.run(cloud_in,cloud_filtered,cloud_result);
-//	pcl::visualization::CloudViewer viewer("Cloud Viewer");
-//	viewer.showCloud(cloud_result,"resultant Cloud");
+	//	Modelization::planeDetection Modelizer;
+	//	Modelizer.run(cloud_in,cloud_filtered,cloud_result);
+	//	pcl::visualization::CloudViewer viewer("Cloud Viewer");
+	//	viewer.showCloud(cloud_result,"resultant Cloud");
 
 	cout << "finished";
 	return 0;
