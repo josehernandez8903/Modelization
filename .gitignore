@@ -6,3 +6,6 @@
 /results
 /Debug
 /Debug
+/tests
+/keypoints_src.pcd
+/keypoints_tgt.pcd
