@@ -2,7 +2,7 @@
  * planeDetection.hpp
  *
  *  Created on: Dec 5, 2013
- *      Author: Jose Juan Hernandez Lopez
+ *  Author: Jose Juan Hernandez Lopez
  */
 
 #ifndef PLANEDETECTION_HPP_
@@ -19,16 +19,33 @@
 #include "include.hpp"
 namespace Modelization {
 
+/**
+ * \brief planar detection elimination class, namely the floor.
+ */
 class planeDetection {
 public:
 	planeDetection();
 	virtual ~planeDetection();
 
 
+	/**
+	 * \brief detects and extracts the largests planes u to a percentage of the image
+	 * \param[in] cloud_in Input cloud
+	 * \param[in] percentage Maximum cloud percentage allowed 0.0->1.0
+	 * \param[out] cloud_filtered Non segmented voxel filtered cloud result
+	 * \param[out] cloud_r Segmented voxel filtered cloud result
+	 */
 	void run(const PCXYZRGBPtr& cloud_in
+			, double percentage
 			, PCXYZRGB& cloud_filtered
 			, PCXYZRGB& cloud_r);
 
+	/**
+	 * \brief template function that applies a squared voxel filter
+	 * \param[in] cloud_in Input cloud
+	 * \param[in] leaf_size Box size in meters
+	 * \param[out] cloud_filtered Filtered cloud
+	 */
 	template <typename PointT>
 	static void voxel_filter(const typename pcl::PointCloud<PointT>::ConstPtr& cloud_in
 			, float leaf_size

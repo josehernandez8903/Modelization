@@ -35,6 +35,7 @@ Registration::~Registration() {
 /* Thread Running */
 /************************************************************************************/
 bool Registration::addCloud(const PCXYZRGBCPtr &_in){
+	//if not runnig bind a thread
 	if(!isRunning){
 		isRunning = true;
 		LoopThread = boost::thread(&Registration::runLoop,this,_in->makeShared());
@@ -49,6 +50,7 @@ bool Registration::addCloud(const PCXYZRGBCPtr &_in){
 
 bool Registration::getResult(PCXYZRGBPtr &_out){
 	bool retval = false;
+	//if there is a view ready return the cloud and initialise another
 	if(viewReady){
 		cout<<"ViewReady"<<endl;
 		_out.swap(Resultcloud);
@@ -57,10 +59,11 @@ bool Registration::getResult(PCXYZRGBPtr &_out){
 		viewReady = false;
 
 	}
+	//if not a getting view thread already, initialise the thread
 	if(!gettingView){
 //		cout<<"test"<<endl;
 		gettingView = true;
-		LoopThread = boost::thread(&Registration::getView,this,Resultcloud);
+		LoopThread = boost::thread(&Registration::getView,this,Resultcloud,true,false);
 	}
 	else{
 //		cout<<"Still getting View"<<endl;
@@ -528,8 +531,12 @@ void Registration::checkforKeyframe(const PCXYZRGBPtr &fullCloud
 /************************************************************************************/
 /************************************************************************************/
 /************************************************************************************/
-void Registration::getView(PCXYZRGBPtr &result)
+void Registration::getView(PCXYZRGBPtr &result,bool doTransform,bool forceUpdate)
 {
+	if(forceUpdate){
+		viewframes = 0;
+	}
+
 	//If first call to the function, initialize the fullcloud image.
 	gettingView = true;
 	size_t size = Keyframes.size();
@@ -556,10 +563,14 @@ void Registration::getView(PCXYZRGBPtr &result)
 		PCXYZRGBPtr temp2(new PCXYZRGB);
 		transform*=*(KeyTransform[viewframes]);
 		//		cout<<"Applied Transform"<<endl<<transform<<endl;
+		if(!doTransform)
+			transform = Eigen::Matrix4d::Identity();
+
 		transformPointCloud (*(KeyframeFull[viewframes]), *temp, transform.cast<float> ());
 		Modelization::planeDetection::voxel_filter(temp,0.005,*temp2);
 		*fullCloud+=*temp2;
 	}
+	//Filter the result
 	Modelization::planeDetection::voxel_filter(fullCloud,0.01,*result);
 	cout<<"Number of keyframes : "<<size<<endl;
 	viewReady = true;

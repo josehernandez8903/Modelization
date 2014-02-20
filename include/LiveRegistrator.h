@@ -24,16 +24,47 @@
 
 namespace Modelization {
 
+/**
+ * \brief Live registration class using an OpenNI sensor
+ */
 class LiveRegistrator {
 public:
+
+	/**
+	 * \brief constructor
+	 * \param[in] mode Sensor mode
+	 * \note possible options are pcl::OpenNIGrabber::OpenNI_QVGA_30Hz or pcl::OpenNIGrabber::OpenNI_VGA_30Hz
+	 */
 	LiveRegistrator(pcl::OpenNIGrabber::Mode mode);
+
+	/**
+	 * \brief default destructor
+	 */
 	virtual ~LiveRegistrator();
+
+	/**
+	 * \brief Initialize the capture and registration
+	 */
 	void run ();
+
+	/**
+	 * \brief Internal callback to retrieve the cloud from the sensor
+	 * \param[out] cloud Return cloud
+	 */
 	void cloud_callback (const PCXYZRGBCPtr& cloud);
 
 
 private:
+	/**
+	 * \brief Misc visualizer parameters settings
+	 * \param[in] viewer visualizer to modify
+	 */
 	void initializeCamera(pcl::visualization::PCLVisualizer::Ptr & viewer);
+
+	/**
+	 * \brief sensor initialzations
+	 * \param[in] sensor Sensor to initialize
+	 */
 	void initilizeSensor(pcl::OpenNIGrabber::Ptr & sensor);
 
 	int v1;
