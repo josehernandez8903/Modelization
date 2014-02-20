@@ -5,19 +5,23 @@
 #include "../include/planeDetection.hpp"
 #include "../include/Registration.hpp"
 
-#define INIT 1      //Initial Image
-#define ITER 2		//Increment
-#define MAX  52		//Max image
 
 int
 main (int argc, char** argv)
 {
 	//Check for name string before the numeration
-	if(argc<2)
+	if(argc<3)
 	{
 		std::cerr<<"Error: filename required"<<std::endl;
+		std::cerr<<"Initial cloud number, Last cloud Number and increment required"<<std::endl;
+		std::cerr<<"example: main Darwin_final_1_ 10 20 2"<<std::endl;
+		std::cerr<<"From Darwin_final_1_10.pcd to Darwin_final_1_20.pcd every other cloud"<<std::endl;
 		return 0;
 	}
+
+	const uint INIT = atoi(argv[2]);
+	const uint MAX = atoi(argv[3]);
+	const uint ITER = atoi(argv[4]);
 
 	uint i;
 
@@ -95,9 +99,7 @@ main (int argc, char** argv)
 			}
 		}
 		viewer.spinOnce(100);
-
 //		cout<<"registration "<<i<<": "<<timer.toc()<<" Miliseconds"<<endl;
-
 	}
 
 	viewer.spin();

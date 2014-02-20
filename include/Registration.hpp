@@ -97,8 +97,10 @@ public:
 	/*
 	 * \brief returns the registration result from images given by the \ref runLoop function
 	 * \param[out] result the complete registered cloud.
+	 * \param[in] doTransform Apply the transformation matrix.
+	 * \param[in] forceUpdate rebuild the result cloud from scratch
 	 */
-	void getView(PCXYZRGBPtr &result);
+	void getView(PCXYZRGBPtr &result, bool doTransform, bool forceUpdate);
 
 private:
 	/*
